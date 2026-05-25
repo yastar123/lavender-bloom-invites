@@ -4,6 +4,7 @@ import {
   motion, AnimatePresence,
   useScroll, useSpring,
   useMotionValue, useTransform,
+  useInView,
 } from "motion/react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -276,6 +277,173 @@ function BokehCanvas({count=10,dark=false}:{count?:number;dark?:boolean}) {
     return()=>{ cancelAnimationFrame(animId); ro.disconnect(); };
   },[count,dark]);
   return <canvas ref={canvasRef} style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}} aria-hidden="true"/>;
+}
+
+/* ─── STAR FIELD ─── */
+function StarField() {
+  const canvasRef=useRef<HTMLCanvasElement>(null);
+  useEffect(()=>{
+    const canvas=canvasRef.current!; const ctx=canvas.getContext('2d')!;
+    let animId:number, t=0;
+    const resize=()=>{ canvas.width=canvas.parentElement!.offsetWidth; canvas.height=canvas.parentElement!.offsetHeight; };
+    const ro=new ResizeObserver(resize); ro.observe(canvas.parentElement!); resize();
+    type S={x:number;y:number;r:number;ph:number;sp:number};
+    const stars:S[]=Array.from({length:70},()=>({
+      x:Math.random(), y:Math.random(),
+      r:Math.random()*.9+.25,
+      ph:Math.random()*Math.PI*2,
+      sp:Math.random()*.022+.008,
+    }));
+    const draw=()=>{
+      ctx.clearRect(0,0,canvas.width,canvas.height); t+=.012;
+      const W=canvas.width, H=canvas.height;
+      stars.forEach(s=>{
+        const twinkle=(Math.sin(t*s.sp*5+s.ph)+1)/2;
+        const op=twinkle*.45+.08;
+        ctx.globalAlpha=op;
+        ctx.fillStyle='#E8CE88';
+        ctx.beginPath(); ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2); ctx.fill();
+        if(s.r>.6&&twinkle>.72){
+          const cx=s.x*W, cy=s.y*H, len=s.r*3.2;
+          ctx.globalAlpha=op*.55;
+          ctx.strokeStyle='#F4D898'; ctx.lineWidth=.6;
+          ctx.beginPath(); ctx.moveTo(cx-len,cy); ctx.lineTo(cx+len,cy);
+          ctx.moveTo(cx,cy-len); ctx.lineTo(cx,cy+len); ctx.stroke();
+        }
+      });
+      animId=requestAnimationFrame(draw);
+    };
+    draw();
+    return()=>{ cancelAnimationFrame(animId); ro.disconnect(); };
+  },[]);
+  return <canvas ref={canvasRef} style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:0}} aria-hidden="true"/>;
+}
+
+/* ─── HEART FLOAT ─── */
+function HeartFloat() {
+  const canvasRef=useRef<HTMLCanvasElement>(null);
+  useEffect(()=>{
+    const canvas=canvasRef.current!; const ctx=canvas.getContext('2d')!;
+    let animId:number, t=0;
+    const resize=()=>{ canvas.width=canvas.parentElement!.offsetWidth; canvas.height=canvas.parentElement!.offsetHeight; };
+    const ro=new ResizeObserver(resize); ro.observe(canvas.parentElement!); resize();
+    type H={x:number;y:number;sz:number;vy:number;op:number;ph:number;vx:number};
+    const hearts:H[]=Array.from({length:14},()=>({
+      x:Math.random(), y:Math.random()+.1,
+      sz:Math.random()*10+4,
+      vy:-(Math.random()*.35+.12),
+      vx:(Math.random()-.5)*.06,
+      op:Math.random()*.32+.12,
+      ph:Math.random()*Math.PI*2,
+    }));
+    const drawHeart=(x:number,y:number,s:number)=>{
+      ctx.beginPath();
+      ctx.moveTo(x,y+s*.35);
+      ctx.bezierCurveTo(x,y,x-s,y,x-s,y+s*.35);
+      ctx.bezierCurveTo(x-s,y+s*.65,x,y+s*.92,x,y+s*1.1);
+      ctx.bezierCurveTo(x,y+s*.92,x+s,y+s*.65,x+s,y+s*.35);
+      ctx.bezierCurveTo(x+s,y,x,y,x,y+s*.35);
+      ctx.closePath();
+    };
+    const draw=()=>{
+      ctx.clearRect(0,0,canvas.width,canvas.height); t+=.008;
+      const W=canvas.width, H=canvas.height;
+      hearts.forEach(h=>{
+        h.y+=h.vy/H; h.x+=h.vx/W+Math.sin(t+h.ph)*.00025;
+        if(h.y<-.12){ h.y=1.06; h.x=Math.random(); }
+        ctx.save();
+        const pulse=(Math.sin(t*.6+h.ph)+1)/2*.35+.65;
+        ctx.globalAlpha=h.op*pulse;
+        ctx.fillStyle='#D4A8A0';
+        drawHeart(h.x*W, h.y*H, h.sz);
+        ctx.fill();
+        ctx.restore();
+      });
+      animId=requestAnimationFrame(draw);
+    };
+    draw();
+    return()=>{ cancelAnimationFrame(animId); ro.disconnect(); };
+  },[]);
+  return <canvas ref={canvasRef} style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:1}} aria-hidden="true"/>;
+}
+
+/* ─── DRAW ORNAMENT (SVG path animates in on scroll) ─── */
+function DrawOrnament({light=false,className=""}:{light?:boolean;className?:string}) {
+  const ref=useRef<HTMLDivElement>(null);
+  const inView=useInView(ref,{once:true,margin:"-12% 0px"});
+  const c=light?'#E8CE88':'#C09050';
+  return (
+    <div ref={ref} className={className}>
+      <svg viewBox="0 0 640 48" fill="none" style={{width:"100%",maxWidth:540,display:"block",margin:"0 auto"}}>
+        <motion.path
+          d="M20 24 C90 8, 170 40, 250 24 S390 8, 460 24 S550 40, 620 24"
+          stroke={c} strokeWidth="1.1" strokeLinecap="round" fill="none"
+          initial={{pathLength:0,opacity:0}}
+          animate={inView?{pathLength:1,opacity:.6}:{}}
+          transition={{duration:2.2,ease:[0.42,0,0.58,1]}}
+        />
+        <motion.circle cx="320" cy="24" r="4.5" fill={c}
+          initial={{scale:0,opacity:0}}
+          animate={inView?{scale:1,opacity:.8}:{}}
+          transition={{delay:.9,duration:.5,type:"spring",stiffness:200}}
+        />
+        <motion.circle cx="308" cy="24" r="2" fill={c}
+          initial={{scale:0,opacity:0}}
+          animate={inView?{scale:1,opacity:.45}:{}}
+          transition={{delay:1.05,duration:.4,type:"spring"}}
+        />
+        <motion.circle cx="332" cy="24" r="2" fill={c}
+          initial={{scale:0,opacity:0}}
+          animate={inView?{scale:1,opacity:.45}:{}}
+          transition={{delay:1.05,duration:.4,type:"spring"}}
+        />
+      </svg>
+    </div>
+  );
+}
+
+/* ─── CONFETTI BURST (gold confetti on RSVP submit) ─── */
+function ConfettiBurst({active}:{active:boolean}) {
+  const canvasRef=useRef<HTMLCanvasElement>(null);
+  const ranRef=useRef(false);
+  useEffect(()=>{
+    if(!active||ranRef.current||!canvasRef.current)return;
+    ranRef.current=true;
+    const canvas=canvasRef.current;
+    const ctx=canvas.getContext('2d')!;
+    canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+    const colors=['#F4D898','#C09050','#D4A8A0','#E0C080','#fff','#FFD700','#B8860B'];
+    type C={x:number;y:number;vx:number;vy:number;sz:number;c:string;life:number;rot:number;rv:number;shape:number};
+    const pieces:C[]=Array.from({length:90},()=>({
+      x:window.innerWidth/2, y:window.innerHeight*.38,
+      vx:(Math.random()-.5)*16, vy:(Math.random()-.5)*14-6,
+      sz:Math.random()*8+3,
+      c:colors[Math.floor(Math.random()*colors.length)],
+      life:1, rot:Math.random()*360, rv:(Math.random()-.5)*9,
+      shape:Math.floor(Math.random()*3),
+    }));
+    let animId:number;
+    const draw=()=>{
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      let alive=false;
+      pieces.forEach(p=>{
+        p.x+=p.vx; p.y+=p.vy; p.vy+=.28; p.life-=.013; p.rot+=p.rv;
+        if(p.life<=0)return; alive=true;
+        ctx.save(); ctx.globalAlpha=Math.max(0,p.life);
+        ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+        ctx.fillStyle=p.c;
+        if(p.shape===0){ ctx.fillRect(-p.sz/2,-p.sz/3,p.sz,p.sz*.65); }
+        else if(p.shape===1){ ctx.beginPath(); ctx.arc(0,0,p.sz/2,0,Math.PI*2); ctx.fill(); }
+        else { ctx.beginPath(); ctx.moveTo(0,-p.sz*.6); ctx.lineTo(p.sz*.5,p.sz*.4); ctx.lineTo(-p.sz*.5,p.sz*.4); ctx.closePath(); ctx.fill(); }
+        ctx.restore();
+      });
+      if(alive){ animId=requestAnimationFrame(draw); }
+      else{ ctx.clearRect(0,0,canvas.width,canvas.height); }
+    };
+    draw();
+    return()=>{ cancelAnimationFrame(animId); };
+  },[active]);
+  return <canvas ref={canvasRef} style={{position:'fixed',inset:0,width:'100vw',height:'100vh',zIndex:95,pointerEvents:'none'}} aria-hidden="true"/>;
 }
 
 /* ─── SECTION TITLE (word-by-word stagger) ─── */
@@ -932,6 +1100,7 @@ function Index() {
               <FloatingParticles/>
               <FallingPetals/>
               <CursorSparkle/>
+              <ConfettiBurst active={submitted}/>
 
               {/* ── NAV ── */}
               <motion.nav initial={{y:-56,opacity:0}} animate={{y:0,opacity:1}} transition={{delay:.25,ease:[0.22,1,0.36,1]}}
@@ -1269,7 +1438,8 @@ function Index() {
                       Detail Acara
                     </SectionTitle>
                   </div>
-                  <Reveal delay={.18} className="flex justify-center mt-8 mb-16"><FlDiv/></Reveal>
+                  <Reveal delay={.18} className="flex justify-center mt-8 mb-4"><FlDiv/></Reveal>
+                  <DrawOrnament className="mb-12"/>
 
                   {/* Countdown */}
                   <Reveal delay={.12} className="mb-16">
@@ -1396,6 +1566,7 @@ function Index() {
 
               {/* ══ GALERI ══ */}
               <section id="galeri" className="relative overflow-hidden" style={{background:G.deep}}>
+                <StarField/>
                 <div className="sec-num" style={{fontSize:"clamp(180px,26vw,360px)",color:G.ivory,left:-20,top:-40}}>03</div>
                 <div className="absolute inset-0 pointer-events-none" style={{background:`radial-gradient(ellipse 85% 55% at 50% 100%,${G.gold}08,transparent 55%)`}}/>
                 <div className="px-5 sm:px-10 pt-24 sm:pt-32 pb-14">
@@ -1406,7 +1577,8 @@ function Index() {
                         Momen Kami
                       </SectionTitle>
                     </div>
-                    <Reveal delay={.2} className="flex justify-center mt-8 mb-3"><FlDiv light/></Reveal>
+                    <Reveal delay={.2} className="flex justify-center mt-8 mb-2"><FlDiv light/></Reveal>
+                    <DrawOrnament light className="mb-3"/>
                     <Reveal delay={.3}><p className="fd italic text-sm" style={{color:`${G.ivory}38`}}>Geser untuk melihat semua foto</p></Reveal>
                   </div>
 
@@ -1499,6 +1671,8 @@ function Index() {
 
               {/* ══ RSVP ══ */}
               <section id="rsvp" className="relative overflow-hidden py-24 sm:py-32" style={{background:G.deep}}>
+                <StarField/>
+                <BokehCanvas dark count={6}/>
                 <div className="sec-num" style={{fontSize:"clamp(180px,26vw,360px)",color:G.ivory,left:-20,bottom:-40}}>05</div>
                 <div className="absolute inset-0 pointer-events-none" style={{background:`radial-gradient(ellipse 85% 60% at 50% -5%,${G.gold}10,transparent 50%)`}}/>
                 <div className="px-5 sm:px-10 max-w-lg mx-auto relative">
@@ -1508,7 +1682,8 @@ function Index() {
                       Ucapan &amp; Doa
                     </SectionTitle>
                   </div>
-                  <Reveal delay={.2} className="flex justify-center mt-8 mb-3"><FlDiv light/></Reveal>
+                  <Reveal delay={.2} className="flex justify-center mt-8 mb-2"><FlDiv light/></Reveal>
+                  <DrawOrnament light className="mb-3"/>
                   <Reveal delay={.3} className="text-center mb-12">
                     <p className="fd italic text-sm" style={{color:`${G.ivory}42`}}>Sampaikan ucapan terbaik Anda</p>
                   </Reveal>
@@ -1622,6 +1797,8 @@ function Index() {
                   <img ref={closingImgRef} src="https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=1800&q=85&fit=crop" alt="" style={{position:"absolute",inset:0,width:"100%",height:"115%",objectFit:"cover",objectPosition:"center",willChange:"transform",opacity:.45,mixBlendMode:"multiply"}}/>
                   {/* Bokeh ambient layer */}
                   <BokehCanvas count={14} dark={false}/>
+                  {/* Floating hearts */}
+                  <HeartFloat/>
                   {/* Ivory overlay — less opaque so video/photo shows through */}
                   <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(255,252,247,.88) 0%,rgba(255,252,247,.72) 48%,rgba(255,252,247,.88) 100%)"}}/>
                   <div style={{position:"absolute",inset:0,background:`radial-gradient(ellipse 140% 60% at 50% 50%,${G.rose}32,transparent 60%)`}}/>
