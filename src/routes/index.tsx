@@ -152,12 +152,11 @@ function AnimHeading({ children, className="", style={}, dark=false, delay=0 }: 
       {words.map((w, i) => (
         <span key={i} className="inline-block overflow-hidden mr-[0.22em] last:mr-0">
           <motion.span
-            display="inline-block"
-            initial={{ y:"115%", opacity:0, rotateX:"-18deg" }}
-            whileInView={{ y:"0%", opacity:1, rotateX:"0deg" }}
+            initial={{ y:"115%", opacity:0 }}
+            whileInView={{ y:"0%", opacity:1 }}
             viewport={{ once:true, amount:0.8 }}
             transition={{ duration:0.75, delay: delay + i * 0.09, ease:[0.22,1,0.36,1] }}
-            style={{ display:"inline-block", transformOrigin:"top center" }}
+            style={{ display:"inline-block" }}
           >
             {w}
           </motion.span>
