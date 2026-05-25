@@ -6,7 +6,6 @@ import {
   useScroll,
   useSpring,
   useMotionValue,
-  useTransform,
 } from "motion/react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -428,6 +427,9 @@ function Index() {
   const [storyIdx, setStoryIdx] = useState(0);
   const mainRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<unknown>(null);
+  const petals = useMemo(() => Array.from({length:12}).map((_,i) => ({
+    id:i, left:(i*9.4)%100, delay:(i*1.7)%12, dur:18+(i%5)*4,
+  })), []);
 
   /* Lenis smooth scroll */
   useEffect(() => {
@@ -758,9 +760,7 @@ function Index() {
 
               {/* Floating petals */}
               <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
-                {useMemo(()=>Array.from({length:12}).map((_,i)=>({
-                  id:i, left:(i*9.4)%100, delay:(i*1.7)%12, dur:18+(i%5)*4,
-                })),[]).map(p=>(
+                {petals.map(p=>(
                   <motion.div key={p.id}
                     initial={{ y:"-4%",opacity:0,rotate:0 }}
                     animate={{ y:"106vh",opacity:[0,.14,.14,0],rotate:p.id%2===0?360:-360,x:[0,20,-16,10,0] }}
