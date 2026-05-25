@@ -172,7 +172,7 @@ function FallingPetals() {
       y:Math.random()*window.innerHeight*-1.4,
       sz:Math.random()*8+4, vy:Math.random()*.55+.22, vx:Math.random()*.18-.09,
       rot:Math.random()*360, rv:Math.random()*1.4-.7,
-      op:Math.random()*.18+.05, sway:Math.random()*Math.PI*2, swayS:Math.random()*.014+.004,
+      op:Math.random()*.45+.28, sway:Math.random()*Math.PI*2, swayS:Math.random()*.014+.004,
     }));
     const draw=()=>{
       ctx.clearRect(0,0,canvas.width,canvas.height);
