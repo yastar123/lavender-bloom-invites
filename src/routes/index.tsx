@@ -337,7 +337,7 @@ function Cursor() {
     <motion.div className="fixed z-[199] pointer-events-none hidden lg:flex items-center justify-center"
       style={{ x:sx, y:sy, marginLeft:"-20px", marginTop:"-20px" }}>
       <motion.div className="rounded-full"
-        animate={{ width:click?8:hov?44:12, height:click?8:hov?44:12, background:hov?"transparent":G.gold, border:hov?`1.5px solid ${G.gold}`:"none", opacity:hov?0.7:0.9 }}
+        animate={{ width:click?8:hov?44:12, height:click?8:hov?44:12, background:hov?`rgba(192,144,80,0)`:G.gold, border:hov?`1.5px solid ${G.gold}`:"1.5px solid rgba(192,144,80,0)", opacity:hov?0.7:0.9 }}
         transition={{ type:"spring", stiffness:300, damping:26 }}
         style={{ mixBlendMode:"multiply" }} />
     </motion.div>
@@ -375,7 +375,7 @@ function Gallery({ onOpen }: { onOpen:(i:number)=>void }) {
               className="relative overflow-hidden shrink-0 group"
               style={{ width:"clamp(220px,30vw,340px)", aspectRatio:"3/4", boxShadow:`0 24px 56px rgba(26,21,17,.38)` }}
             >
-              <img src={ph.src} alt={ph.label} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.08]"/>
+              <img src={ph.src} alt={ph.label} className="gallery-img w-full h-full object-cover group-hover:scale-[1.08]"/>
               <div className="absolute inset-0 transition-opacity duration-400"
                 style={{ background:"linear-gradient(to top,rgba(26,21,17,.92) 0%,rgba(26,21,17,.2) 50%,transparent 100%)" }}/>
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400"
@@ -597,13 +597,30 @@ function Index() {
 
         /* Card hover */
         .hover-lift{transition:transform .4s cubic-bezier(.22,1,.36,1),box-shadow .4s ease;}
-        .hover-lift:hover{transform:translateY(-5px);}
+        .hover-lift:hover{transform:translateY(-6px);box-shadow:0 24px 64px rgba(192,144,80,.18)!important;}
 
         /* Input group */
         .input-group{position:relative;}
         .input-group label{position:absolute;top:50%;left:16px;transform:translateY(-50%);font-size:10px;color:${G.ivory}50;pointer-events:none;transition:all .2s;font-family:'Montserrat',sans-serif;letter-spacing:.08em;}
         .input-group input:not(:placeholder-shown) ~ label,
         .input-group input:focus ~ label{top:8px;transform:none;font-size:8px;color:${G.gold};}
+
+        /* Gallery image brightness */
+        .gallery-img{filter:brightness(.92);transition:filter .5s ease,transform .7s cubic-bezier(.22,1,.36,1);}
+        .gallery-img:hover{filter:brightness(1);}
+
+        /* Gold shimmer button */
+        @keyframes goldShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        .btn-shimmer{background:linear-gradient(90deg,${G.goldD},${G.gold},${G.goldL},${G.gold},${G.goldD});background-size:200% auto;animation:goldShimmer 3.5s linear infinite;}
+
+        /* Timeline dots pulse */
+        @keyframes dotPulse{0%,100%{box-shadow:0 0 0 0 ${G.gold}50}70%{box-shadow:0 0 0 8px ${G.gold}00}}
+        .dot-active{animation:dotPulse 2s ease-out infinite;}
+
+        /* RSVP scroll track */
+        .rsvp-feed{scrollbar-width:thin;scrollbar-color:${G.gold}44 transparent;}
+        .rsvp-feed::-webkit-scrollbar{width:2px;}
+        .rsvp-feed::-webkit-scrollbar-thumb{background:${G.gold}55;border-radius:2px;}
       `}</style>
 
       <div id="grain" aria-hidden="true" />
@@ -723,8 +740,16 @@ function Index() {
 
                         {/* Desktop brief */}
                         <div className="hidden lg:block mb-7">
-                          <p className="fb text-[9px] font-semibold mb-4" style={{ color:G.gold,letterSpacing:".42em" }}>UNDANGAN PERNIKAHAN</p>
-                          <GLine className="w-16 mx-auto mb-4"/>
+                          <motion.p initial={{ opacity:0,letterSpacing:".1em" }} animate={{ opacity:1,letterSpacing:".42em" }}
+                            transition={{ duration:1.2,delay:.25 }} className="fb text-[9px] font-semibold mb-4"
+                            style={{ color:G.gold }}>UNDANGAN PERNIKAHAN</motion.p>
+                          <GLine className="w-16 mx-auto mb-5"/>
+                          <motion.div initial={{ opacity:0,y:12 }} animate={{ opacity:1,y:0 }} transition={{ delay:.45,duration:.9 }}>
+                            <span className="fs gshim block" style={{ fontSize:"clamp(40px,6vw,58px)",lineHeight:1 }}>{W.bride}</span>
+                            <span className="fd italic block my-1" style={{ color:G.muted,fontSize:17 }}>&amp;</span>
+                            <span className="fs gshim block" style={{ fontSize:"clamp(40px,6vw,58px)",lineHeight:1 }}>{W.groom}</span>
+                          </motion.div>
+                          <GLine className="w-16 mx-auto mt-5 mb-4"/>
                           <p className="fd italic text-sm" style={{ color:G.muted }}>{W.dateText}</p>
                         </div>
 
@@ -741,8 +766,8 @@ function Index() {
                         </motion.div>
 
                         <Magnetic onClick={openInvitation}
-                          className="btn-pulse fb inline-flex items-center gap-2.5 px-9 py-4 text-[10px] font-semibold"
-                          style={{ background:`linear-gradient(135deg,${G.goldD},${G.gold},${G.goldL})`, color:G.ivory, letterSpacing:".16em", boxShadow:`0 10px 32px ${G.gold}44` }}>
+                          className="btn-pulse btn-shimmer fb inline-flex items-center gap-2.5 px-9 py-4 text-[10px] font-semibold"
+                          style={{ color:G.ivory, letterSpacing:".16em", boxShadow:`0 10px 32px ${G.gold}44` }}>
                           ✉&ensp; BUKA UNDANGAN
                         </Magnetic>
                       </div>
@@ -866,7 +891,7 @@ function Index() {
                     </Reveal>
 
                     {/* Couple portraits */}
-                    <div className="flex flex-col sm:flex-row gap-12 sm:gap-6 items-center sm:items-start justify-center">
+                    <div className="flex flex-col sm:flex-row gap-12 sm:gap-0 items-center sm:items-start justify-center relative">
                       {[
                         { img:"https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=500&h=700&q=85&fit=crop&crop=face", lbl:"THE BRIDE", name:W.bride, full:W.brideFull, role:"Putri dari", parents:W.brideParents, dx:-36 },
                         { img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=700&q=85&fit=crop&crop=face", lbl:"THE GROOM", name:W.groom, full:W.groomFull, role:"Putra dari", parents:W.groomParents, dx:36 },
@@ -876,26 +901,35 @@ function Index() {
                           whileInView={{ opacity:1,x:0 }}
                           viewport={{ once:true }}
                           transition={{ duration:1.1,delay:i*.16,ease:[0.22,1,0.36,1] }}
-                          className="flex-1 text-center w-full max-w-[220px] sm:max-w-none mx-auto sm:mx-0"
+                          className="flex-1 text-center w-full max-w-[220px] sm:max-w-[260px] mx-auto"
                         >
                           <motion.div whileHover={{ y:-8,scale:1.03 }} transition={{ duration:.45,ease:[0.22,1,0.36,1] }}
                             className="relative mx-auto mb-5 overflow-hidden"
-                            style={{ width:"min(162px,42vw)", aspectRatio:"3/4",
-                              border:`1.5px solid ${G.gold}45`,
-                              boxShadow:`0 22px 60px rgba(192,144,80,.18),0 0 0 8px ${G.ivory}` }}>
+                            style={{ width:"min(170px,44vw)", aspectRatio:"3/4",
+                              border:`1.5px solid ${G.gold}55`,
+                              boxShadow:`0 28px 72px rgba(192,144,80,.22),0 0 0 6px ${G.ivory},0 0 0 7px ${G.gold}22` }}>
                             <img src={p.img} alt={p.name} className="w-full h-full object-cover"/>
-                            <div className="absolute inset-0" style={{ background:"linear-gradient(to bottom,transparent 55%,rgba(26,21,17,.32))" }}/>
+                            <div className="absolute inset-0" style={{ background:"linear-gradient(to bottom,transparent 50%,rgba(26,21,17,.45))" }}/>
                             <div className="absolute inset-x-0 bottom-0 h-[2px]"
-                              style={{ background:`linear-gradient(to right,transparent,${G.gold}66,transparent)` }}/>
+                              style={{ background:`linear-gradient(to right,transparent,${G.gold}80,transparent)` }}/>
+                            <div className="absolute inset-x-0 top-0 h-[2px]"
+                              style={{ background:`linear-gradient(to right,transparent,${G.gold}40,transparent)` }}/>
                           </motion.div>
                           <p className="fb text-[8px] font-semibold mb-2.5" style={{ color:G.gold,letterSpacing:".32em" }}>{p.lbl}</p>
-                          <h2 className="fs" style={{ fontSize:52,color:G.deep,lineHeight:1.1 }}>{p.name}</h2>
+                          <h2 className="fs" style={{ fontSize:56,color:G.deep,lineHeight:1.1 }}>{p.name}</h2>
                           <p className="fd italic text-sm mt-2 mb-1" style={{ color:G.muted }}>{p.full}</p>
                           <GLine className="w-10 mx-auto my-3"/>
                           <p className="fb text-[11px]" style={{ color:G.muted }}>{p.role}</p>
-                          <p className="fb text-[11px] font-semibold mt-0.5" style={{ color:G.deep }}>{p.parents}</p>
+                          <p className="fb text-[11px] font-semibold mt-0.5 leading-snug" style={{ color:G.deep }}>{p.parents}</p>
                         </motion.div>
                       ))}
+                      {/* Centre & */}
+                      <div className="hidden sm:flex absolute left-1/2 top-[calc(20%+0px)] -translate-x-1/2 flex-col items-center gap-2 z-10">
+                        <div className="w-px h-10 opacity-30" style={{ background:G.gold }}/>
+                        <motion.span animate={{ scale:[1,1.12,1] }} transition={{ duration:4,repeat:Infinity }}
+                          className="fd italic" style={{ fontSize:28,color:G.gold,lineHeight:1 }}>&amp;</motion.span>
+                        <div className="w-px h-10 opacity-30" style={{ background:G.gold }}/>
+                      </div>
                     </div>
                   </div>
                 </section>
@@ -981,7 +1015,7 @@ function Index() {
                                 <motion.div
                                   animate={{ scale: i===storyIdx?1.15:1, background: i===storyIdx?G.gold:`rgba(255,252,247,.1)` }}
                                   transition={{ duration:.3 }}
-                                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                                  className={`w-10 h-10 rounded-full flex items-center justify-center${i===storyIdx?" dot-active":""}`}
                                   style={{ border:`1px solid ${i===storyIdx?G.gold:`${G.ivory}22`}` }}>
                                   <span className="fd font-medium text-xs" style={{ color:i===storyIdx?G.ivory:G.gold }}>{i+1}</span>
                                 </motion.div>
@@ -1025,32 +1059,46 @@ function Index() {
                     {/* Countdown — large display */}
                     <Reveal delay={.1}>
                       <div className="mb-14 text-center">
-                        <p className="fb text-[9px] font-semibold mb-5" style={{ color:G.muted,letterSpacing:".4em" }}>MENGHITUNG HARI</p>
-                        <div className="grid grid-cols-4 gap-2 sm:gap-3">
-                          {[{v:cd.d,l:"Hari"},{v:cd.h,l:"Jam"},{v:cd.m,l:"Menit"},{v:cd.s,l:"Detik"}].map((x,i)=>(
-                            <div key={x.l} className="relative overflow-hidden text-center py-5 sm:py-7"
-                              style={{ background:`linear-gradient(160deg,${G.cream},${G.ivory})`, border:`1px solid ${G.gold}30`, boxShadow:`0 8px 28px rgba(192,144,80,.08)` }}>
-                              <div className="absolute inset-x-0 top-0 h-[2px]"
-                                style={{ background:`linear-gradient(to right,transparent,${G.gold}66,transparent)` }}/>
-                              <div className="absolute inset-x-0 bottom-0 h-[1px]"
-                                style={{ background:`linear-gradient(to right,transparent,${G.gold}22,transparent)` }}/>
-                              <AnimatePresence mode="popLayout">
-                                <motion.span key={x.v}
-                                  initial={{ y:-16,opacity:0 }} animate={{ y:0,opacity:1 }} exit={{ y:16,opacity:0 }}
-                                  transition={{ duration:.28,ease:[0.22,1,0.36,1] }}
-                                  className="fd block" style={{ fontSize:"clamp(26px,6vw,38px)",color:G.deep,fontWeight:300,lineHeight:1 }}>
-                                  {String(x.v).padStart(2,"0")}
-                                </motion.span>
-                              </AnimatePresence>
-                              <span className="fb block mt-1.5" style={{ fontSize:"clamp(7px,1.8vw,9px)",color:G.gold,letterSpacing:".18em" }}>
-                                {x.l.toUpperCase()}
-                              </span>
-                              {/* Corner dots */}
-                              <div className="absolute top-1.5 left-1.5 w-1 h-1 rounded-full opacity-40" style={{ background:G.gold }}/>
-                              <div className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full opacity-40" style={{ background:G.gold }}/>
+                        {(cd.d===0&&cd.h===0&&cd.m===0&&cd.s===0) ? (
+                          <div className="py-10 relative overflow-hidden"
+                            style={{ border:`1px solid ${G.gold}35`, background:`linear-gradient(160deg,${G.cream},${G.ivory})`, boxShadow:`0 12px 40px rgba(192,144,80,.1)` }}>
+                            <div className="absolute inset-x-0 top-0 h-[2px]"
+                              style={{ background:`linear-gradient(to right,transparent,${G.gold}66,transparent)` }}/>
+                            <motion.p animate={{ opacity:[.7,1,.7] }} transition={{ duration:3,repeat:Infinity }}
+                              className="fs gshim block" style={{ fontSize:"clamp(32px,7vw,52px)",lineHeight:1.2 }}>
+                              Selamat Menempuh Hidup Baru
+                            </motion.p>
+                            <p className="fb text-[9px] mt-4" style={{ color:G.gold,letterSpacing:".4em" }}>✦ 27 APRIL 2024 ✦</p>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="fb text-[9px] font-semibold mb-5" style={{ color:G.muted,letterSpacing:".4em" }}>MENGHITUNG HARI</p>
+                            <div className="grid grid-cols-4 gap-2 sm:gap-3">
+                              {[{v:cd.d,l:"Hari"},{v:cd.h,l:"Jam"},{v:cd.m,l:"Menit"},{v:cd.s,l:"Detik"}].map((x)=>(
+                                <div key={x.l} className="relative overflow-hidden text-center py-5 sm:py-7"
+                                  style={{ background:`linear-gradient(160deg,${G.cream},${G.ivory})`, border:`1px solid ${G.gold}30`, boxShadow:`0 8px 28px rgba(192,144,80,.08)` }}>
+                                  <div className="absolute inset-x-0 top-0 h-[2px]"
+                                    style={{ background:`linear-gradient(to right,transparent,${G.gold}66,transparent)` }}/>
+                                  <div className="absolute inset-x-0 bottom-0 h-[1px]"
+                                    style={{ background:`linear-gradient(to right,transparent,${G.gold}22,transparent)` }}/>
+                                  <AnimatePresence mode="popLayout">
+                                    <motion.span key={x.v}
+                                      initial={{ y:-16,opacity:0 }} animate={{ y:0,opacity:1 }} exit={{ y:16,opacity:0 }}
+                                      transition={{ duration:.28,ease:[0.22,1,0.36,1] }}
+                                      className="fd block" style={{ fontSize:"clamp(26px,6vw,38px)",color:G.deep,fontWeight:300,lineHeight:1 }}>
+                                      {String(x.v).padStart(2,"0")}
+                                    </motion.span>
+                                  </AnimatePresence>
+                                  <span className="fb block mt-1.5" style={{ fontSize:"clamp(7px,1.8vw,9px)",color:G.gold,letterSpacing:".18em" }}>
+                                    {x.l.toUpperCase()}
+                                  </span>
+                                  <div className="absolute top-1.5 left-1.5 w-1 h-1 rounded-full opacity-40" style={{ background:G.gold }}/>
+                                  <div className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full opacity-40" style={{ background:G.gold }}/>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
+                          </>
+                        )}
                       </div>
                     </Reveal>
 
@@ -1284,7 +1332,7 @@ function Index() {
                           <motion.div key="ok"
                             initial={{ opacity:0,scale:.92,y:12 }} animate={{ opacity:1,scale:1,y:0 }} exit={{ opacity:0,scale:.95 }}
                             transition={{ duration:.5,ease:[0.22,1,0.36,1] }}
-                            className="text-center py-16" style={{ border:`1px solid ${G.gold}44`, background:`rgba(192,144,80,.05)` }}>
+                            className="relative text-center py-16 overflow-hidden" style={{ border:`1px solid ${G.gold}44`, background:`rgba(192,144,80,.05)` }}>
                             <div className="absolute inset-x-0 top-0 h-[1.5px]"
                               style={{ background:`linear-gradient(to right,transparent,${G.gold}60,transparent)` }}/>
                             <p className="fs mb-3 float" style={{ fontSize:64,color:G.gold,lineHeight:1 }}>✉</p>
@@ -1332,7 +1380,7 @@ function Index() {
 
                       {/* RSVP list */}
                       {rsvps.length > 0 && (
-                        <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                        <div className="rsvp-feed space-y-3 max-h-80 overflow-y-auto pr-1">
                           <AnimatePresence>
                             {rsvps.map(r=>(
                               <motion.div key={r.ts} layout
