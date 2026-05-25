@@ -848,12 +848,16 @@ function Index() {
                         src="https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=1800&q=90&fit=crop"
                         alt=""
                         className="w-full h-full object-cover"
+                        style={{filter:"brightness(1.08) contrast(1.12) saturate(1.18)"}}
                         initial={{ scale:1.15 }} animate={{ scale:1 }}
                         transition={{ duration:1.6, delay:.1, ease:[0.22,1,0.36,1] }}
                       />
                     </motion.div>
                   </div>
-                  <div className="absolute inset-0 pointer-events-none" style={{background:"linear-gradient(to bottom,rgba(14,12,10,.38) 0%,rgba(14,12,10,.22) 40%,rgba(255,252,247,0) 60%,rgba(255,252,247,1) 100%)"}}/>
+                  {/* Dark cinematic overlay — top vignette only */}
+                  <div className="absolute inset-0 pointer-events-none" style={{background:"linear-gradient(to bottom,rgba(14,12,10,.52) 0%,rgba(14,12,10,.18) 35%,rgba(14,12,10,.08) 65%,rgba(14,12,10,.35) 100%)"}}/>
+                  {/* Bottom fade to page bg — starts much later */}
+                  <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{height:"28%",background:"linear-gradient(to bottom,rgba(255,252,247,0) 0%,rgba(255,252,247,1) 100%)"}}/>
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
                     <motion.p initial={{opacity:0,letterSpacing:".04em"}} animate={{opacity:1,letterSpacing:".55em"}} transition={{duration:1.6}}
                       className="fb text-[7.5px] font-semibold mb-8" style={{color:`${G.ivory}70`}}>PASANGAN</motion.p>
