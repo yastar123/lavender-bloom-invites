@@ -33,10 +33,10 @@ const W = {
   verseId:"Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan-pasangan dari jenismu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya.",
   akad:{ time:"08.00 – 10.00 WIB", place:"Masjid Al-Hikmah", addr:"Jl. Raya Kebayoran Lama No.32, Jakarta Selatan", maps:"https://maps.google.com/?q=Masjid+Al-Hikmah+Jakarta" },
   resepsi:{ time:"11.00 – 14.00 WIB", place:"The Sultan Ballroom", addr:"Jl. Gatot Subroto, Senayan, Jakarta Pusat", maps:"https://maps.google.com/?q=Sultan+Hotel+Jakarta" },
-  music:["https://cdn.pixabay.com/download/audio/2022/10/30/audio_347111d654.mp3"],
+  music:["/videoplayback.m4a"],
   story:[
     { year:"2019", num:"01", title:"Pertemuan\nPertama", sub:"Sebuah senyum yang mengubah segalanya", body:"Kami bertemu pertama kali di acara orientasi kampus. Satu tatapan yang tak sengaja, menjadi awal dari cerita yang paling indah dalam hidup kami.", img:"https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=900&h=1100&q=90&fit=crop" },
-    { year:"2021", num:"02", title:"Jatuh\nCinta", sub:"Dua hati yang akhirnya bicara", body:"Dua tahun persahabatan yang dalam, perlahan berubah menjadi cinta yang tulus. Kami tahu, ini adalah sesuatu yang sangat istimewa.", img:"https://images.unsplash.com/photo-1529635696947-b3f8c0d35b3c?w=900&h=1100&q=90&fit=crop" },
+    { year:"2021", num:"02", title:"Jatuh\nCinta", sub:"Dua hati yang akhirnya bicara", body:"Dua tahun persahabatan yang dalam, perlahan berubah menjadi cinta yang tulus. Kami tahu, ini adalah sesuatu yang sangat istimewa.", img:"https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=900&h=1100&q=90&fit=crop" },
     { year:"2023", num:"03", title:"Lamaran\nBali", sub:"Momen yang paling dinantikan", body:"Di tepi pantai Bali, saat matahari tenggelam, Fadli berlutut dan bertanya, 'Maukah kamu menjadi teman hidupku?' Anis menjawab dengan air mata bahagia.", img:"https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=900&h=1100&q=90&fit=crop" },
     { year:"2024", num:"04", title:"Hari\nBahagia", sub:"Selamanya dimulai hari ini", body:"27 April 2024 — hari yang selalu kami impikan. Bersama keluarga dan sahabat tercinta, kami resmi menyatukan dua jiwa dalam ikatan suci.", img:"https://images.unsplash.com/photo-1519741497674-611481863552?w=900&h=1100&q=90&fit=crop" },
   ],
@@ -44,7 +44,7 @@ const W = {
     { src:"https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=1100&h=1400&q=90&fit=crop", label:"Momen Pertama" },
     { src:"https://images.unsplash.com/photo-1529636798458-92182e662485?w=1100&h=700&q=90&fit=crop", label:"Dalam Kebun" },
     { src:"https://images.unsplash.com/photo-1606800052052-a08af7148866?w=1100&h=1400&q=90&fit=crop", label:"Cincin Kami" },
-    { src:"https://images.unsplash.com/photo-1511285560929-80b456503681?w=1100&h=700&q=90&fit=crop", label:"Tarian Pertama" },
+    { src:"https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=1100&h=700&q=90&fit=crop", label:"Tarian Pertama" },
     { src:"https://images.unsplash.com/photo-1469371670807-013ccf25f16a?w=1100&h=1400&q=90&fit=crop", label:"Dekorasi Akad" },
     { src:"https://images.unsplash.com/photo-1583939411023-14783179e581?w=1100&h=700&q=90&fit=crop", label:"Bunga Cinta" },
     { src:"https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=1100&h=1400&q=90&fit=crop", label:"Bersama" },
@@ -415,10 +415,31 @@ function Index() {
   },[opened]);
 
   useEffect(()=>{ try{ const r=localStorage.getItem("rsvps"); if(r)setRsvps(JSON.parse(r)); }catch{} },[]);
-  const tryPlay=()=>audioRef.current?.play().then(()=>setPlaying(true)).catch(()=>{});
+  const tryPlay = () => {
+    const a = audioRef.current;
+    if (!a) return;
+    try {
+      const p = a.play();
+      if (p && typeof p.then === "function") {
+        p.then(() => setPlaying(true)).catch(() => {});
+      } else {
+        setPlaying(true);
+      }
+    } catch (e) {
+      console.error("Audio playback failed:", e);
+    }
+  };
   useEffect(()=>{ if(opened)tryPlay(); },[opened]);
   const toggleMusic=()=>{ const a=audioRef.current; if(!a)return; if(playing){a.pause();setPlaying(false);}else tryPlay(); };
-  const openInvitation=()=>{ setOpened(true); requestAnimationFrame(()=>window.scrollTo({top:0})); };
+  const openInvitation=()=>{
+    setOpened(true);
+    try {
+      tryPlay();
+    } catch (e) {
+      console.error("tryPlay error on open:", e);
+    }
+    requestAnimationFrame(()=>window.scrollTo({top:0}));
+  };
   const submitRsvp=(e:React.FormEvent)=>{
     e.preventDefault();
     if(!form.nama.trim()||!form.ucapan.trim())return;
@@ -517,6 +538,7 @@ function Index() {
       <style>{css}</style>
       <div id="grain" aria-hidden="true"/>
       <Cursor cursorLabel={cursorLabel}/>
+      <audio ref={audioRef} src={W.music[0]} loop preload="auto" onPlay={()=>setPlaying(true)} onPause={()=>setPlaying(false)}/>
       {!loaded && <Loader onDone={()=>setLoaded(true)}/>}
 
       {loaded && (
@@ -592,7 +614,7 @@ function Index() {
                 </div>
 
                 {/* ── Right: invitation card ── */}
-                <div className="w-full lg:w-[42%] h-full flex items-center justify-center px-5 py-10 sm:px-10 relative overflow-hidden"
+                <div className="w-full lg:w-[42%] h-full flex items-center justify-center px-5 py-6 sm:py-10 sm:px-10 relative overflow-y-auto"
                   style={{background:G.ivory}}>
                   {/* Mobile photo bg */}
                   <div className="lg:hidden absolute inset-0 pointer-events-none">
@@ -693,25 +715,24 @@ function Index() {
           {opened && (
             <div className="w-full min-h-screen" style={{background:G.ivory}}>
               <ScrollBar/>
-              <audio ref={audioRef} src={W.music[0]} loop preload="none" onPlay={()=>setPlaying(true)} onPause={()=>setPlaying(false)}/>
 
               {/* ── NAV ── */}
               <motion.nav initial={{y:-56,opacity:0}} animate={{y:0,opacity:1}} transition={{delay:.25,ease:[0.22,1,0.36,1]}}
                 className="fixed top-0 left-0 right-0 z-40"
                 style={{background:"rgba(255,252,247,.94)",backdropFilter:"blur(28px)",WebkitBackdropFilter:"blur(28px)",borderBottom:`1px solid ${G.gold}1C`}}>
-                <div className="flex items-center justify-between max-w-screen-xl mx-auto px-5 sm:px-8 py-3.5">
-                  <span className="fs" style={{fontSize:28,color:G.deep,lineHeight:1}}>{W.bride} &amp; {W.groom}</span>
-                  <nav className="flex items-center gap-1 sm:gap-2">
+                <div className="flex items-center justify-between max-w-screen-xl mx-auto px-4 sm:px-8 py-2.5 sm:py-3.5">
+                  <span className="fs hidden md:block" style={{fontSize:28,color:G.deep,lineHeight:1}}>{W.bride} &amp; {W.groom}</span>
+                  <nav className="flex items-center gap-0.5 sm:gap-2 overflow-x-auto no-scrollbar">
                     {navItems.map(item=>(
                       <button key={item.id} onClick={()=>scrollTo(item.id)}
-                        className={`ni fb px-2.5 sm:px-4 py-2 text-[7.5px] font-semibold transition-colors duration-200 ${activeNav===item.id?"active":""}`}
-                        style={{color:activeNav===item.id?G.gold:G.muted,letterSpacing:".14em"}}>
+                        className={`ni fb px-2 sm:px-4 py-2 text-[7px] sm:text-[7.5px] font-semibold transition-colors duration-200 shrink-0 ${activeNav===item.id?"active":""}`}
+                        style={{color:activeNav===item.id?G.gold:G.muted,letterSpacing:".12em",whiteSpace:"nowrap"}}>
                         {item.label.toUpperCase()}
                       </button>
                     ))}
                   </nav>
                   <button onClick={toggleMusic} aria-label="Music"
-                    className="w-9 h-9 flex items-center justify-center rounded-full"
+                    className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full shrink-0"
                     style={{background:playing?`${G.gold}22`:G.cream,border:`1.5px solid ${G.gold}38`}}>
                     {playing
                       ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={G.gold} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" opacity=".4"/><circle cx="12" cy="12" r="3" fill={G.gold} stroke="none"/><path d="M6 12a6 6 0 016-6" opacity=".55"/><path d="M18 12a6 6 0 01-6 6" opacity=".55"/></svg>
@@ -725,7 +746,7 @@ function Index() {
               <section id="pembukaan" style={{paddingTop:58}}>
                 {/* Hero banner */}
                 <div className="relative overflow-hidden" style={{height:"68vh",minHeight:360}}>
-                  <ClipReveal src="https://images.unsplash.com/photo-1511285560929-80b456503681?w=1800&q=90&fit=crop" alt="" style={{position:"absolute",inset:0}}/>
+                  <ClipReveal src="https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=1800&q=90&fit=crop" alt="" style={{position:"absolute",inset:0}}/>
                   <div className="absolute inset-0 pointer-events-none" style={{background:"linear-gradient(to bottom,rgba(14,12,10,.38) 0%,rgba(14,12,10,.22) 40%,rgba(255,252,247,0) 60%,rgba(255,252,247,1) 100%)"}}/>
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
                     <motion.p initial={{opacity:0,letterSpacing:".04em"}} whileInView={{opacity:1,letterSpacing:".55em"}} viewport={{once:true}} transition={{duration:1.6}}
@@ -782,15 +803,15 @@ function Index() {
                   </Reveal>
 
                   {/* Portraits */}
-                  <div className="flex flex-col sm:flex-row gap-16 sm:gap-0 items-start justify-center relative">
+                  <div className="flex flex-col md:flex-row gap-12 md:gap-24 items-start justify-center relative">
                     {[
-                      {img:"https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=600&h=800&q=90&fit=crop&crop=face",lbl:"THE BRIDE",name:W.bride,full:W.brideFull,role:"Putri dari",parents:W.brideParents,dx:-52},
+                      {img:"https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=600&h=800&q=90&fit=crop&crop=face",lbl:"THE BRIDE",name:W.bride,full:W.brideFull,role:"Putri dari",parents:W.brideParents,dx:-52},
                       {img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=800&q=90&fit=crop&crop=face",lbl:"THE GROOM",name:W.groom,full:W.groomFull,role:"Putra dari",parents:W.groomParents,dx:52},
                     ].map((p,i)=>(
                       <motion.div key={p.name} initial={{opacity:0,x:p.dx}} whileInView={{opacity:1,x:0}} viewport={{once:true}}
                         transition={{duration:1.3,delay:i*.22,ease:[0.22,1,0.36,1]}} className="flex-1 text-center w-full max-w-[225px] mx-auto">
                         <motion.div whileHover={{y:-12,scale:1.028}} transition={{duration:.5,ease:[0.22,1,0.36,1]}}
-                          className="relative mx-auto mb-6 pf" style={{width:"min(175px,44vw)",aspectRatio:"3/4"}}>
+                           className="relative mx-auto mb-6 pf" style={{width:"min(175px,44vw)",aspectRatio:"3/4"}}>
                           {/* Outer frame */}
                           <div style={{position:"absolute",inset:-7,border:`1px solid ${G.gold}28`}}/>
                           {/* Main frame */}
@@ -816,7 +837,7 @@ function Index() {
                       </motion.div>
                     ))}
                     {/* Center & */}
-                    <div className="hidden sm:flex absolute left-1/2 top-[8%] -translate-x-1/2 flex-col items-center gap-2 z-10">
+                    <div className="hidden md:flex absolute left-1/2 top-[8%] -translate-x-1/2 flex-col items-center gap-2 z-10">
                       <div style={{width:1,height:52,background:G.gold,opacity:.22}}/>
                       <motion.span animate={{scale:[1,1.18,1],opacity:[.65,1,.65]}} transition={{duration:5,repeat:Infinity}} className="fd italic" style={{fontSize:30,color:G.gold,lineHeight:1}}>&amp;</motion.span>
                       <div style={{width:1,height:52,background:G.gold,opacity:.22}}/>
@@ -838,16 +859,15 @@ function Index() {
               </div>
 
               {/* ══ CERITA — HORIZONTAL SCROLL ══ */}
-              <section id="cerita">
-                <div ref={storyWrapRef} style={{height:`${W.story.length*100}vh`,position:"relative"}}>
-                  <div className="sticky top-0 h-screen overflow-hidden" style={{background:G.deep}}>
-                    {/* Section label (fixed) */}
-                    <div className="absolute top-6 left-0 right-0 z-20 flex items-center justify-between px-8 sm:px-14 pointer-events-none">
-                      <p className="fb text-[7.5px] font-semibold" style={{color:G.goldL,letterSpacing:".52em"}}>OUR LOVE STORY</p>
-                      <p className="fd italic text-xs" style={{color:`${G.ivory}40`}}>Geser atau scroll</p>
-                    </div>
-                    {/* Horizontal track */}
-                    <div ref={storyTrackRef} className="flex h-full" style={{width:`${W.story.length*100}vw`}}>
+              <section id="cerita" ref={storyWrapRef} className="w-full overflow-hidden">
+                <div className="h-screen overflow-hidden relative" style={{background:G.deep}}>
+                  {/* Section label (fixed) */}
+                  <div className="absolute top-6 left-0 right-0 z-20 flex items-center justify-between px-8 sm:px-14 pointer-events-none">
+                    <p className="fb text-[7.5px] font-semibold" style={{color:G.goldL,letterSpacing:".52em"}}>OUR LOVE STORY</p>
+                    <p className="fd italic text-xs" style={{color:`${G.ivory}40`}}>Geser atau scroll</p>
+                  </div>
+                  {/* Horizontal track */}
+                  <div ref={storyTrackRef} className="flex h-full" style={{width:`${W.story.length*100}vw`}}>
                       {W.story.map((s,i)=>(
                         <div key={s.year} className="s-slide relative flex flex-col sm:flex-row overflow-hidden">
                           {/* Big background year */}
@@ -856,7 +876,7 @@ function Index() {
                             right:-20,bottom:-60,
                           }}>{s.year}</div>
                           {/* Left: text */}
-                          <div className="flex flex-col justify-center flex-1 px-10 sm:px-20 pt-24 pb-10 sm:py-0 relative z-10" style={{maxWidth:"50vw",minWidth:"40vw"}}>
+                          <div className="flex flex-col justify-center flex-1 px-8 sm:px-20 pt-20 pb-10 sm:py-0 relative z-10 w-full sm:max-w-[50vw] sm:min-w-[40vw]">
                             <div className="mb-8">
                               <motion.div className="flex items-center gap-3 mb-5"
                                 initial={{opacity:0,x:-28}} whileInView={{opacity:1,x:0}} viewport={{once:true,amount:.5}}
@@ -905,7 +925,6 @@ function Index() {
                       ))}
                     </div>
                   </div>
-                </div>
               </section>
 
               {/* ══ ACARA ══ */}
