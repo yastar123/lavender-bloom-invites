@@ -746,18 +746,34 @@ function Index() {
               <section id="pembukaan" style={{paddingTop:58}}>
                 {/* Hero banner */}
                 <div className="relative overflow-hidden" style={{height:"68vh",minHeight:360}}>
-                  <ClipReveal src="https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=1800&q=90&fit=crop" alt="" style={{position:"absolute",inset:0}}/>
+                  {/* Background image — uses animate (not whileInView) because it's always above the fold */}
+                  <div className="absolute inset-0 overflow-hidden">
+                    <motion.div
+                      initial={{ clipPath:"inset(0 100% 0 0)" }}
+                      animate={{ clipPath:"inset(0 0% 0 0)" }}
+                      transition={{ duration:1.25, ease:[0.76,0,0.24,1] }}
+                      className="w-full h-full"
+                    >
+                      <motion.img
+                        src="https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=1800&q=90&fit=crop"
+                        alt=""
+                        className="w-full h-full object-cover"
+                        initial={{ scale:1.15 }} animate={{ scale:1 }}
+                        transition={{ duration:1.6, delay:.1, ease:[0.22,1,0.36,1] }}
+                      />
+                    </motion.div>
+                  </div>
                   <div className="absolute inset-0 pointer-events-none" style={{background:"linear-gradient(to bottom,rgba(14,12,10,.38) 0%,rgba(14,12,10,.22) 40%,rgba(255,252,247,0) 60%,rgba(255,252,247,1) 100%)"}}/>
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
-                    <motion.p initial={{opacity:0,letterSpacing:".04em"}} whileInView={{opacity:1,letterSpacing:".55em"}} viewport={{once:true}} transition={{duration:1.6}}
+                    <motion.p initial={{opacity:0,letterSpacing:".04em"}} animate={{opacity:1,letterSpacing:".55em"}} transition={{duration:1.6}}
                       className="fb text-[7.5px] font-semibold mb-8" style={{color:`${G.ivory}70`}}>PASANGAN</motion.p>
                     <div style={{overflow:"hidden"}}>
-                      <motion.h1 initial={{y:"112%"}} whileInView={{y:0}} viewport={{once:true}} transition={{duration:1.2,ease:[0.22,1,0.36,1]}}
+                      <motion.h1 initial={{y:"112%"}} animate={{y:0}} transition={{delay:.3,duration:1.2,ease:[0.22,1,0.36,1]}}
                         className="fs" style={{fontSize:"clamp(52px,12vw,96px)",color:G.ivory,lineHeight:1,textShadow:"0 8px 36px rgba(0,0,0,.5)"}}>
                         {W.bride} &amp; {W.groom}
                       </motion.h1>
                     </div>
-                    <motion.div initial={{scaleX:0}} whileInView={{scaleX:1}} viewport={{once:true}} transition={{delay:.5,duration:1.2}}
+                    <motion.div initial={{scaleX:0}} animate={{scaleX:1}} transition={{delay:.7,duration:1.2}}
                       style={{height:1,width:100,background:`linear-gradient(to right,transparent,${G.goldL},transparent)`,marginTop:20}}/>
                   </div>
                   <div className="absolute top-4 left-4"><Corner pos="tl" op=".4"/></div>
