@@ -156,6 +156,128 @@ function FloatingParticles() {
   );
 }
 
+/* ─── FALLING PETALS (canvas — fixed overlay) ─── */
+function FallingPetals() {
+  const canvasRef=useRef<HTMLCanvasElement>(null);
+  useEffect(()=>{
+    const canvas=canvasRef.current!;
+    const ctx=canvas.getContext('2d')!;
+    let animId:number;
+    const resize=()=>{ canvas.width=window.innerWidth; canvas.height=window.innerHeight; };
+    resize();
+    window.addEventListener('resize',resize);
+    type P={x:number;y:number;sz:number;vy:number;vx:number;rot:number;rv:number;op:number;sway:number;swayS:number};
+    const ps:P[]=Array.from({length:22},()=>({
+      x:Math.random()*window.innerWidth,
+      y:Math.random()*window.innerHeight*-1.4,
+      sz:Math.random()*8+4, vy:Math.random()*.55+.22, vx:Math.random()*.18-.09,
+      rot:Math.random()*360, rv:Math.random()*1.4-.7,
+      op:Math.random()*.18+.05, sway:Math.random()*Math.PI*2, swayS:Math.random()*.014+.004,
+    }));
+    const draw=()=>{
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ps.forEach(p=>{
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180); ctx.globalAlpha=p.op;
+        ctx.beginPath();
+        ctx.moveTo(0,-p.sz);
+        ctx.bezierCurveTo(p.sz*.9,-p.sz*.55,p.sz*.9,p.sz*.55,0,p.sz);
+        ctx.bezierCurveTo(-p.sz*.9,p.sz*.55,-p.sz*.9,-p.sz*.55,0,-p.sz);
+        const g=ctx.createLinearGradient(0,-p.sz,0,p.sz);
+        g.addColorStop(0,'#F4D898'); g.addColorStop(.45,'#D4A8A0'); g.addColorStop(1,'#C09050');
+        ctx.fillStyle=g; ctx.fill(); ctx.restore();
+        p.sway+=p.swayS;
+        p.x+=p.vx+Math.sin(p.sway)*.45; p.y+=p.vy; p.rot+=p.rv;
+        if(p.y>canvas.height+24){p.y=-24;p.x=Math.random()*canvas.width;}
+      });
+      animId=requestAnimationFrame(draw);
+    };
+    draw();
+    return()=>{ cancelAnimationFrame(animId); window.removeEventListener('resize',resize); };
+  },[]);
+  return <canvas ref={canvasRef} style={{position:'fixed',inset:0,zIndex:3,pointerEvents:'none'}} aria-hidden="true"/>;
+}
+
+/* ─── CURSOR SPARKLE (canvas — desktop only) ─── */
+function CursorSparkle() {
+  const canvasRef=useRef<HTMLCanvasElement>(null);
+  useEffect(()=>{
+    const canvas=canvasRef.current!;
+    const ctx=canvas.getContext('2d')!;
+    canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+    type Sp={x:number;y:number;vx:number;vy:number;life:number;sz:number};
+    const sparks:Sp[]=[];
+    let animId:number, lx=-999, ly=-999;
+    const onMove=(e:MouseEvent)=>{
+      if(Math.hypot(e.clientX-lx,e.clientY-ly)<5)return;
+      lx=e.clientX; ly=e.clientY;
+      for(let i=0;i<4;i++){
+        sparks.push({x:lx,y:ly,vx:(Math.random()-.5)*2.8,vy:(Math.random()-.5)*2.8-.6,life:1,sz:Math.random()*2.2+.6});
+      }
+    };
+    const draw=()=>{
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for(let i=sparks.length-1;i>=0;i--){
+        const s=sparks[i];
+        s.x+=s.vx; s.y+=s.vy; s.vy+=.038; s.life-=.03;
+        if(s.life<=0){sparks.splice(i,1);continue;}
+        ctx.globalAlpha=s.life*.8;
+        ctx.fillStyle=s.life>.55?'#F4D898':'#C09050';
+        ctx.beginPath(); ctx.arc(s.x,s.y,s.sz*s.life,0,Math.PI*2); ctx.fill();
+        if(s.sz>1.6){
+          ctx.globalAlpha=s.life*.32; ctx.strokeStyle='#E0C080'; ctx.lineWidth=.6;
+          ctx.beginPath();
+          ctx.moveTo(s.x-s.sz*2.2,s.y); ctx.lineTo(s.x+s.sz*2.2,s.y);
+          ctx.moveTo(s.x,s.y-s.sz*2.2); ctx.lineTo(s.x,s.y+s.sz*2.2);
+          ctx.stroke();
+        }
+      }
+      animId=requestAnimationFrame(draw);
+    };
+    window.addEventListener('mousemove',onMove); draw();
+    const resize=()=>{ canvas.width=window.innerWidth; canvas.height=window.innerHeight; };
+    window.addEventListener('resize',resize);
+    return()=>{ window.removeEventListener('mousemove',onMove); window.removeEventListener('resize',resize); cancelAnimationFrame(animId); };
+  },[]);
+  return <canvas ref={canvasRef} className="hidden lg:block" style={{position:'fixed',inset:0,zIndex:5,pointerEvents:'none'}} aria-hidden="true"/>;
+}
+
+/* ─── BOKEH CANVAS (ambient glowing orbs — absolute within parent) ─── */
+function BokehCanvas({count=10,dark=false}:{count?:number;dark?:boolean}) {
+  const canvasRef=useRef<HTMLCanvasElement>(null);
+  useEffect(()=>{
+    const canvas=canvasRef.current!;
+    const ctx=canvas.getContext('2d')!;
+    let animId:number, t=0;
+    const resize=()=>{ canvas.width=canvas.parentElement!.offsetWidth; canvas.height=canvas.parentElement!.offsetHeight; };
+    const ro=new ResizeObserver(resize); ro.observe(canvas.parentElement!); resize();
+    const palette=dark?['#C09050','#E0C080','#F4D898','#D4A8A0','#8A6030']:['#C09050','#E0C080','#D4A8A0','#C09050'];
+    type Orb={x:number;y:number;r:number;vx:number;vy:number;op:number;c:string;ph:number};
+    const orbs:Orb[]=Array.from({length:count},()=>({
+      x:Math.random()*1200, y:Math.random()*700,
+      r:Math.random()*95+40, vx:(Math.random()-.5)*.14, vy:(Math.random()-.5)*.14,
+      op:Math.random()*.1+.04, c:palette[Math.floor(Math.random()*palette.length)], ph:Math.random()*Math.PI*2,
+    }));
+    const draw=()=>{
+      ctx.clearRect(0,0,canvas.width,canvas.height); t+=.006;
+      const W=canvas.width, H=canvas.height;
+      orbs.forEach((o,i)=>{
+        o.x+=o.vx+Math.sin(t+o.ph)*.09; o.y+=o.vy+Math.cos(t+o.ph*.7)*.09;
+        if(o.x<-o.r)o.x=W+o.r; if(o.x>W+o.r)o.x=-o.r;
+        if(o.y<-o.r)o.y=H+o.r; if(o.y>H+o.r)o.y=-o.r;
+        const pulse=Math.sin(t*.4+i)*.22+.85;
+        const grd=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r*pulse);
+        const a=Math.round(o.op*pulse*255).toString(16).padStart(2,'0');
+        grd.addColorStop(0,o.c+a); grd.addColorStop(1,o.c+'00');
+        ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(o.x,o.y,o.r*pulse,0,Math.PI*2); ctx.fill();
+      });
+      animId=requestAnimationFrame(draw);
+    };
+    draw();
+    return()=>{ cancelAnimationFrame(animId); ro.disconnect(); };
+  },[count,dark]);
+  return <canvas ref={canvasRef} style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}} aria-hidden="true"/>;
+}
+
 /* ─── SECTION TITLE (word-by-word stagger) ─── */
 function SectionTitle({children,className="",style={}}:{children:string;className?:string;style?:React.CSSProperties}) {
   const words=children.split(" ");
@@ -808,6 +930,8 @@ function Index() {
             <div className="w-full min-h-screen" style={{background:G.ivory}}>
               <ScrollBar/>
               <FloatingParticles/>
+              <FallingPetals/>
+              <CursorSparkle/>
 
               {/* ── NAV ── */}
               <motion.nav initial={{y:-56,opacity:0}} animate={{y:0,opacity:1}} transition={{delay:.25,ease:[0.22,1,0.36,1]}}
@@ -1488,9 +1612,21 @@ function Index() {
               {/* ══ PENUTUP ══ */}
               <section ref={closingRef as React.RefObject<HTMLElement>} className="relative overflow-hidden px-5 sm:px-10 py-40 sm:py-52 text-center">
                 <div className="absolute inset-0 overflow-hidden">
-                  <img ref={closingImgRef} src="https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=1800&q=85&fit=crop" alt="" style={{width:"100%",height:"115%",objectFit:"cover",objectPosition:"center",willChange:"transform"}}/>
-                  <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(255,252,247,.97) 0%,rgba(255,252,247,.88) 48%,rgba(255,252,247,.95) 100%)"}}/>
-                  <div style={{position:"absolute",inset:0,background:`radial-gradient(ellipse 140% 60% at 50% 50%,${G.rose}38,transparent 60%)`}}/>
+                  {/* Atmospheric wedding video — silent, looped */}
+                  <video autoPlay muted loop playsInline
+                    style={{position:"absolute",inset:0,width:"100%",height:"115%",objectFit:"cover",objectPosition:"center",opacity:.35,filter:"brightness(.9) saturate(1.15)"}}
+                    onError={e=>(e.currentTarget.style.display="none")}>
+                    <source src="https://videos.pexels.com/video-files/3571264/3571264-sd_960_540_25fps.mp4" type="video/mp4"/>
+                  </video>
+                  {/* Parallax image fallback / overlay */}
+                  <img ref={closingImgRef} src="https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=1800&q=85&fit=crop" alt="" style={{position:"absolute",inset:0,width:"100%",height:"115%",objectFit:"cover",objectPosition:"center",willChange:"transform",opacity:.45,mixBlendMode:"multiply"}}/>
+                  {/* Bokeh ambient layer */}
+                  <BokehCanvas count={14} dark={false}/>
+                  {/* Ivory overlay — less opaque so video/photo shows through */}
+                  <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(255,252,247,.88) 0%,rgba(255,252,247,.72) 48%,rgba(255,252,247,.88) 100%)"}}/>
+                  <div style={{position:"absolute",inset:0,background:`radial-gradient(ellipse 140% 60% at 50% 50%,${G.rose}32,transparent 60%)`}}/>
+                  {/* Cinematic vignette edge */}
+                  <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 110% 80% at 50% 50%,transparent 55%,rgba(14,12,10,.28) 100%)"}}/>
                 </div>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rot-s pointer-events-none" style={{opacity:.058}}><OrnRing size={500}/></div>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rot-c pointer-events-none" style={{opacity:.035}}><OrnRing size={300}/></div>
