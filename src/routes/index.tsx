@@ -424,6 +424,9 @@ function Index() {
   const [submitted,setSubmitted]=useState(false);
   const [copied,setCopied]=useState<string|null>(null);
   const [cursorLabel,setCursorLabel]=useState("");
+  const [menuOpen,setMenuOpen]=useState(false);
+  const [mobileSlide,setMobileSlide]=useState(0);
+  const touchStartRef=useRef<number>(0);
   const lenisRef=useRef<unknown>(null);
   const storyWrapRef=useRef<HTMLDivElement>(null);
   const storyTrackRef=useRef<HTMLDivElement>(null);
@@ -461,9 +464,10 @@ function Index() {
     return()=>{ if(lenis)(lenis as{destroy:()=>void}).destroy(); };
   },[opened]);
 
-  /* Horizontal story scroll */
+  /* Horizontal story scroll — desktop only */
   useGSAP(()=>{
     if(!opened||!storyWrapRef.current||!storyTrackRef.current)return;
+    if(window.innerWidth<640)return;
     const track=storyTrackRef.current;
     const totalX=track.scrollWidth-window.innerWidth;
     if(totalX<=0)return;
@@ -811,25 +815,59 @@ function Index() {
                 style={{background:"rgba(255,252,247,.94)",backdropFilter:"blur(28px)",WebkitBackdropFilter:"blur(28px)",borderBottom:`1px solid ${G.gold}1C`}}>
                 <div className="flex items-center justify-between max-w-screen-xl mx-auto px-4 sm:px-8 py-2.5 sm:py-3.5">
                   <span className="fs hidden md:block" style={{fontSize:28,color:G.deep,lineHeight:1}}>{W.bride} &amp; {W.groom}</span>
-                  <nav className="flex items-center gap-0.5 sm:gap-2 overflow-x-auto no-scrollbar">
+
+                  {/* Desktop nav links */}
+                  <nav className="hidden sm:flex items-center gap-0.5 sm:gap-2">
                     {navItems.map(item=>(
                       <button key={item.id} onClick={()=>scrollTo(item.id)}
-                        className={`ni fb px-2 sm:px-4 py-2 text-[7px] sm:text-[7.5px] font-semibold transition-colors duration-200 shrink-0 ${activeNav===item.id?"active":""}`}
+                        className={`ni fb px-3 sm:px-4 py-2 text-[7px] sm:text-[7.5px] font-semibold transition-colors duration-200 shrink-0 ${activeNav===item.id?"active":""}`}
                         style={{color:activeNav===item.id?G.gold:G.muted,letterSpacing:".12em",whiteSpace:"nowrap"}}>
                         {item.label.toUpperCase()}
                       </button>
                     ))}
                   </nav>
-                  <button onClick={toggleMusic} aria-label="Music"
-                    className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full shrink-0"
-                    style={{background:playing?`${G.gold}22`:G.cream,border:`1.5px solid ${G.gold}38`}}>
-                    {playing
-                      ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={G.gold} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" opacity=".4"/><circle cx="12" cy="12" r="3" fill={G.gold} stroke="none"/><path d="M6 12a6 6 0 016-6" opacity=".55"/><path d="M18 12a6 6 0 01-6 6" opacity=".55"/></svg>
-                      : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={G.gold} strokeWidth="2" strokeLinecap="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg>
-                    }
-                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <button onClick={toggleMusic} aria-label="Music"
+                      className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full shrink-0"
+                      style={{background:playing?`${G.gold}22`:G.cream,border:`1.5px solid ${G.gold}38`}}>
+                      {playing
+                        ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={G.gold} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" opacity=".4"/><circle cx="12" cy="12" r="3" fill={G.gold} stroke="none"/><path d="M6 12a6 6 0 016-6" opacity=".55"/><path d="M18 12a6 6 0 01-6 6" opacity=".55"/></svg>
+                        : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={G.gold} strokeWidth="2" strokeLinecap="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg>
+                      }
+                    </button>
+                    {/* Hamburger — mobile only */}
+                    <button onClick={()=>setMenuOpen(v=>!v)} aria-label="Menu"
+                      className="sm:hidden w-8 h-8 flex flex-col items-center justify-center gap-[5px] rounded-full shrink-0"
+                      style={{background:menuOpen?`${G.gold}18`:G.cream,border:`1.5px solid ${G.gold}38`}}>
+                      <span style={{display:"block",width:14,height:1.5,background:menuOpen?G.gold:G.deep,borderRadius:2,transform:menuOpen?"rotate(45deg) translate(2.5px,2.5px)":"none",transition:"all .25s ease"}}/>
+                      <span style={{display:"block",width:14,height:1.5,background:menuOpen?G.gold:G.deep,borderRadius:2,opacity:menuOpen?0:1,transition:"all .25s ease"}}/>
+                      <span style={{display:"block",width:14,height:1.5,background:menuOpen?G.gold:G.deep,borderRadius:2,transform:menuOpen?"rotate(-45deg) translate(2.5px,-2.5px)":"none",transition:"all .25s ease"}}/>
+                    </button>
+                  </div>
                 </div>
               </motion.nav>
+
+              {/* Mobile menu overlay */}
+              <AnimatePresence>
+                {menuOpen&&(
+                  <motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-8}}
+                    transition={{duration:.22,ease:[0.22,1,0.36,1]}}
+                    className="fixed top-[52px] left-0 right-0 z-[39] sm:hidden"
+                    style={{background:"rgba(255,252,247,.98)",backdropFilter:"blur(28px)",WebkitBackdropFilter:"blur(28px)",borderBottom:`1px solid ${G.gold}22`}}>
+                    {navItems.map((item,i)=>(
+                      <motion.button key={item.id}
+                        initial={{opacity:0,x:-12}} animate={{opacity:1,x:0}} transition={{delay:i*.045}}
+                        onClick={()=>{ scrollTo(item.id); setMenuOpen(false); }}
+                        className="w-full flex items-center justify-between px-6 py-4"
+                        style={{borderBottom:i<navItems.length-1?`1px solid ${G.gold}14`:"none"}}>
+                        <span className="fb text-[8px] font-semibold" style={{color:activeNav===item.id?G.gold:G.muted,letterSpacing:".22em"}}>{item.label.toUpperCase()}</span>
+                        {activeNav===item.id&&<div style={{width:16,height:1,background:G.gold}}/>}
+                      </motion.button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* ══ PEMBUKAAN ══ */}
               <section id="pembukaan" style={{paddingTop:58}}>
@@ -968,73 +1006,129 @@ function Index() {
                 </div>
               </div>
 
-              {/* ══ CERITA — HORIZONTAL SCROLL ══ */}
+              {/* ══ CERITA ══ */}
               <section id="cerita" ref={storyWrapRef} className="w-full overflow-hidden">
-                <div className="h-screen overflow-hidden relative" style={{background:G.deep}}>
-                  {/* Section label (fixed) */}
+
+                {/* ── MOBILE CAROUSEL ── */}
+                <div className="sm:hidden relative" style={{background:G.deep,minHeight:"100svh"}}>
+                  <div className="absolute top-6 left-0 right-0 z-20 flex items-center justify-between px-6 pointer-events-none">
+                    <p className="fb text-[7.5px] font-semibold" style={{color:G.goldL,letterSpacing:".52em"}}>OUR LOVE STORY</p>
+                    <p className="fd italic text-xs" style={{color:`${G.ivory}40`}}>{mobileSlide+1} / {W.story.length}</p>
+                  </div>
+
+                  <AnimatePresence mode="wait">
+                    {W.story.map((s,i)=> i!==mobileSlide ? null : (
+                      <motion.div key={s.year}
+                        initial={{opacity:0,x:40}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-40}}
+                        transition={{duration:.38,ease:[0.22,1,0.36,1]}}
+                        className="flex flex-col w-full"
+                        style={{minHeight:"100svh"}}
+                        onTouchStart={e=>{ touchStartRef.current=e.touches[0].clientX; }}
+                        onTouchEnd={e=>{
+                          const dx=touchStartRef.current-e.changedTouches[0].clientX;
+                          if(dx>45&&mobileSlide<W.story.length-1) setMobileSlide(v=>v+1);
+                          if(dx<-45&&mobileSlide>0) setMobileSlide(v=>v-1);
+                        }}>
+                        {/* Photo — top half */}
+                        <div className="relative overflow-hidden" style={{height:"46svh",flexShrink:0}}>
+                          <img src={s.img} alt={s.title} style={{width:"100%",height:"100%",objectFit:"cover",filter:"brightness(.78) saturate(1.1)"}}/>
+                          <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(14,12,10,.2) 0%,rgba(14,12,10,.85) 100%)"}}/>
+                          <div style={{position:"absolute",bottom:0,left:0,right:0,height:3,background:`linear-gradient(to right,transparent,${G.gold}80,transparent)`}}/>
+                          <div className="sec-num" style={{fontSize:"clamp(90px,28vw,150px)",color:G.ivory,right:-10,bottom:-30}}>{s.year}</div>
+                          {/* Badge */}
+                          <div style={{position:"absolute",top:60,left:20,display:"flex",alignItems:"center",gap:10}}>
+                            <span className="fb text-[8px] font-semibold px-3 py-1.5" style={{background:G.gold,color:G.ivory,letterSpacing:".16em"}}>{s.num}</span>
+                            <div style={{width:40,height:1,background:`linear-gradient(to right,${G.gold}55,transparent)`}}/>
+                          </div>
+                        </div>
+                        {/* Text — bottom half */}
+                        <div className="flex flex-col justify-between flex-1 px-6 pt-6 pb-8">
+                          <div>
+                            <p className="fd italic text-xs mb-2" style={{color:`${G.ivory}50`}}>{s.sub}</p>
+                            <h2 className="fd font-light mb-4" style={{fontSize:"clamp(30px,8vw,44px)",color:G.ivory,lineHeight:1.1,whiteSpace:"pre-line"}}>{s.title}</h2>
+                            <div style={{height:1,width:50,background:`linear-gradient(to right,${G.gold},transparent)`,marginBottom:14}}/>
+                            <p className="fb leading-[1.9]" style={{fontSize:12,color:`${G.ivory}60`,maxWidth:340}}>{s.body}</p>
+                          </div>
+                          {/* Dots + arrows */}
+                          <div className="flex items-center justify-between mt-6">
+                            <button onClick={()=>setMobileSlide(v=>Math.max(0,v-1))} disabled={mobileSlide===0}
+                              style={{width:36,height:36,borderRadius:"50%",border:`1px solid ${G.gold}${mobileSlide===0?"18":"55"}`,display:"flex",alignItems:"center",justifyContent:"center",opacity:mobileSlide===0?.28:1,transition:"all .25s ease"}}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={G.gold} strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+                            </button>
+                            <div className="flex gap-2">
+                              {W.story.map((_,j)=>(
+                                <button key={j} onClick={()=>setMobileSlide(j)}
+                                  style={{width:j===mobileSlide?24:7,height:2,background:j===mobileSlide?G.gold:`${G.ivory}22`,borderRadius:2,transition:"all .4s ease",border:"none",padding:0}}/>
+                              ))}
+                            </div>
+                            <button onClick={()=>setMobileSlide(v=>Math.min(W.story.length-1,v+1))} disabled={mobileSlide===W.story.length-1}
+                              style={{width:36,height:36,borderRadius:"50%",border:`1px solid ${G.gold}${mobileSlide===W.story.length-1?"18":"55"}`,display:"flex",alignItems:"center",justifyContent:"center",opacity:mobileSlide===W.story.length-1?.28:1,transition:"all .25s ease"}}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={G.gold} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+
+                {/* ── DESKTOP HORIZONTAL SCROLL ── */}
+                <div className="hidden sm:block h-screen overflow-hidden relative" style={{background:G.deep}}>
                   <div className="absolute top-6 left-0 right-0 z-20 flex items-center justify-between px-8 sm:px-14 pointer-events-none">
                     <p className="fb text-[7.5px] font-semibold" style={{color:G.goldL,letterSpacing:".52em"}}>OUR LOVE STORY</p>
                     <p className="fd italic text-xs" style={{color:`${G.ivory}40`}}>Geser atau scroll</p>
                   </div>
-                  {/* Horizontal track */}
                   <div ref={storyTrackRef} className="flex h-full" style={{width:`${W.story.length*100}vw`}}>
-                      {W.story.map((s,i)=>(
-                        <div key={s.year} className="s-slide relative flex flex-col sm:flex-row overflow-hidden">
-                          {/* Big background year */}
-                          <div className="sec-num" style={{
-                            fontSize:"clamp(200px,28vw,380px)",color:G.ivory,
-                            right:-20,bottom:-60,
-                          }}>{s.year}</div>
-                          {/* Left: text */}
-                          <div className="flex flex-col justify-center flex-1 px-8 sm:px-20 pt-20 pb-10 sm:py-0 relative z-10 w-full sm:max-w-[50vw] sm:min-w-[40vw]">
-                            <div className="mb-8">
-                              <motion.div className="flex items-center gap-3 mb-5"
-                                initial={{opacity:0,x:-28}} whileInView={{opacity:1,x:0}} viewport={{once:true,amount:.5}}
-                                transition={{duration:.9,ease:[0.22,1,0.36,1]}}>
-                                <span className="fb text-[8px] font-semibold px-3 py-1.5" style={{background:G.gold,color:G.ivory,letterSpacing:".16em"}}>{s.num}</span>
-                                <div style={{flex:1,height:1,background:`linear-gradient(to right,${G.gold}55,transparent)`}}/>
-                                <span className="fd italic text-sm" style={{color:`${G.ivory}38`}}>{s.year}</span>
-                              </motion.div>
-                              <div style={{overflow:"hidden"}}>
-                                <motion.h2 initial={{y:"115%"}} whileInView={{y:0}} viewport={{once:true,amount:.5}}
-                                  transition={{duration:1.1,ease:[0.22,1,0.36,1]}}
-                                  className="fd font-light" style={{fontSize:"clamp(36px,6vw,68px)",color:G.ivory,lineHeight:1.1,whiteSpace:"pre-line"}}>
-                                  {s.title}
-                                </motion.h2>
-                              </div>
-                              <motion.div initial={{scaleX:0}} whileInView={{scaleX:1}} viewport={{once:true,amount:.5}}
-                                transition={{delay:.3,duration:.9}} className="mt-4 mb-5 origin-left"
-                                style={{height:1,width:60,background:`linear-gradient(to right,${G.gold},${G.gold}00)`}}/>
-                              <motion.p initial={{opacity:0,y:18}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.5}}
-                                transition={{delay:.2,duration:.9}} className="fd italic text-xs mb-4" style={{color:`${G.ivory}50`}}>
-                                {s.sub}
-                              </motion.p>
-                              <motion.p initial={{opacity:0,y:18}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.5}}
-                                transition={{delay:.32,duration:.9}} className="fb leading-[2]" style={{fontSize:"clamp(11px,1.5vw,13.5px)",color:`${G.ivory}55`,maxWidth:380}}>
-                                {s.body}
-                              </motion.p>
+                    {W.story.map((s,i)=>(
+                      <div key={s.year} className="s-slide relative flex flex-row overflow-hidden">
+                        <div className="sec-num" style={{fontSize:"clamp(200px,28vw,380px)",color:G.ivory,right:-20,bottom:-60}}>{s.year}</div>
+                        <div className="flex flex-col justify-center flex-1 px-8 sm:px-20 relative z-10 sm:max-w-[50vw] sm:min-w-[40vw]">
+                          <div className="mb-8">
+                            <motion.div className="flex items-center gap-3 mb-5"
+                              initial={{opacity:0,x:-28}} whileInView={{opacity:1,x:0}} viewport={{once:true,amount:.5}}
+                              transition={{duration:.9,ease:[0.22,1,0.36,1]}}>
+                              <span className="fb text-[8px] font-semibold px-3 py-1.5" style={{background:G.gold,color:G.ivory,letterSpacing:".16em"}}>{s.num}</span>
+                              <div style={{flex:1,height:1,background:`linear-gradient(to right,${G.gold}55,transparent)`}}/>
+                              <span className="fd italic text-sm" style={{color:`${G.ivory}38`}}>{s.year}</span>
+                            </motion.div>
+                            <div style={{overflow:"hidden"}}>
+                              <motion.h2 initial={{y:"115%"}} whileInView={{y:0}} viewport={{once:true,amount:.5}}
+                                transition={{duration:1.1,ease:[0.22,1,0.36,1]}}
+                                className="fd font-light" style={{fontSize:"clamp(36px,6vw,68px)",color:G.ivory,lineHeight:1.1,whiteSpace:"pre-line"}}>
+                                {s.title}
+                              </motion.h2>
                             </div>
-                            {/* Step indicator */}
-                            <div className="flex gap-2">
-                              {W.story.map((_,j)=>(
-                                <div key={j} style={{width:j===i?28:8,height:2,background:j===i?G.gold:`${G.ivory}22`,borderRadius:2,transition:"all .4s ease"}}/>
-                              ))}
-                            </div>
+                            <motion.div initial={{scaleX:0}} whileInView={{scaleX:1}} viewport={{once:true,amount:.5}}
+                              transition={{delay:.3,duration:.9}} className="mt-4 mb-5 origin-left"
+                              style={{height:1,width:60,background:`linear-gradient(to right,${G.gold},${G.gold}00)`}}/>
+                            <motion.p initial={{opacity:0,y:18}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.5}}
+                              transition={{delay:.2,duration:.9}} className="fd italic text-xs mb-4" style={{color:`${G.ivory}50`}}>
+                              {s.sub}
+                            </motion.p>
+                            <motion.p initial={{opacity:0,y:18}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.5}}
+                              transition={{delay:.32,duration:.9}} className="fb leading-[2]" style={{fontSize:"clamp(11px,1.5vw,13.5px)",color:`${G.ivory}55`,maxWidth:380}}>
+                              {s.body}
+                            </motion.p>
                           </div>
-                          {/* Right: image */}
-                          <div className="hidden sm:block relative flex-1 overflow-hidden" style={{maxWidth:"50vw"}}>
-                            <div className="absolute inset-0" style={{margin:"32px 32px 32px 0"}}>
-                              <ClipReveal src={s.img} alt={s.title} delay={.2} style={{width:"100%",height:"100%"}}/>
-                              <div className="absolute top-4 right-4"><Corner pos="tr" op=".45"/></div>
-                              <div className="absolute bottom-4 left-4"><Corner pos="bl" op=".45"/></div>
-                              {/* Gold bar on the left edge of image */}
-                              <div style={{position:"absolute",left:0,top:"15%",bottom:"15%",width:3,background:`linear-gradient(to bottom,${G.gold}00,${G.gold}80,${G.gold}00)`}}/>
-                            </div>
+                          <div className="flex gap-2">
+                            {W.story.map((_,j)=>(
+                              <div key={j} style={{width:j===i?28:8,height:2,background:j===i?G.gold:`${G.ivory}22`,borderRadius:2,transition:"all .4s ease"}}/>
+                            ))}
                           </div>
                         </div>
-                      ))}
-                    </div>
+                        <div className="relative flex-1 overflow-hidden" style={{maxWidth:"50vw"}}>
+                          <div className="absolute inset-0" style={{margin:"32px 32px 32px 0"}}>
+                            <ClipReveal src={s.img} alt={s.title} delay={.2} style={{width:"100%",height:"100%"}}/>
+                            <div className="absolute top-4 right-4"><Corner pos="tr" op=".45"/></div>
+                            <div className="absolute bottom-4 left-4"><Corner pos="bl" op=".45"/></div>
+                            <div style={{position:"absolute",left:0,top:"15%",bottom:"15%",width:3,background:`linear-gradient(to bottom,${G.gold}00,${G.gold}80,${G.gold}00)`}}/>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
+                </div>
+
               </section>
 
               {/* ══ ACARA ══ */}
@@ -1042,7 +1136,7 @@ function Index() {
                 {/* Section big number */}
                 <div className="sec-num" style={{fontSize:"clamp(180px,26vw,360px)",color:G.deep,right:-10,top:-40}}>02</div>
                 <div className="absolute inset-0 pointer-events-none" style={{background:`radial-gradient(ellipse 100% 50% at 50% 110%,${G.rose}28,transparent 52%)`}}/>
-                <div className="px-5 sm:px-10 py-28 sm:py-36 max-w-2xl mx-auto relative">
+                <div className="px-5 sm:px-10 py-14 sm:py-36 max-w-2xl mx-auto relative">
                   <Reveal>
                     <p className="fb text-center text-[8px] font-semibold mb-2" style={{color:G.gold,letterSpacing:".58em"}}>SAVE THE DATE</p>
                   </Reveal>
