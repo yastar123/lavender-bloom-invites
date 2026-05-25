@@ -621,6 +621,39 @@ function Index() {
         .rsvp-feed{scrollbar-width:thin;scrollbar-color:${G.gold}44 transparent;}
         .rsvp-feed::-webkit-scrollbar{width:2px;}
         .rsvp-feed::-webkit-scrollbar-thumb{background:${G.gold}55;border-radius:2px;}
+
+        /* Section entrance */
+        section{transition:background .4s ease;}
+
+        /* Image lazy fade */
+        img{transition:opacity .4s ease;}
+
+        /* Smooth anchor scroll */
+        html{scroll-behavior:smooth;}
+
+        /* Mobile nav pills */
+        .nav-pill{position:relative;border-radius:2px;transition:color .2s,background .2s;}
+        .nav-pill.active{background:${G.gold}14;}
+
+        /* Gold top bar accent on cards */
+        .card-accent::before{content:'';position:absolute;inset-x-0;top:0;height:2px;background:linear-gradient(to right,transparent,${G.gold}77,transparent);}
+
+        /* Hover reveal underline */
+        .hover-underline{position:relative;}
+        .hover-underline::after{content:'';position:absolute;bottom:-1px;left:0;width:0;height:1px;background:${G.gold};transition:width .3s ease;}
+        .hover-underline:hover::after{width:100%;}
+
+        /* Elegant blockquote marks */
+        .quote-mark{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:5rem;line-height:1;color:${G.gold};opacity:.12;pointer-events:none;user-select:none;}
+
+        /* Better image hover */
+        .img-zoom{overflow:hidden;}
+        .img-zoom img{transition:transform .7s cubic-bezier(.22,1,.36,1);}
+        .img-zoom:hover img{transform:scale(1.06);}
+
+        /* Testimonial item */
+        .rsvp-item{transition:border-color .2s, background .2s;}
+        .rsvp-item:hover{border-color:${G.gold}44!important;background:rgba(255,252,247,.07)!important;}
       `}</style>
 
       <div id="grain" aria-hidden="true" />
@@ -686,10 +719,21 @@ function Index() {
 
                 {/* Right invitation card */}
                 <div className="w-full lg:w-[48%] h-full flex items-center justify-center px-5 py-10 sm:px-8 relative overflow-hidden"
-                  style={{ background:`radial-gradient(ellipse 160% 90% at 50% -15%,${G.rose}55 0%,transparent 55%),${G.ivory}` }}>
+                  style={{ background:G.ivory }}>
+
+                  {/* Mobile full-bleed background photo */}
+                  <div className="lg:hidden absolute inset-0 pointer-events-none">
+                    <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&q=80&fit=crop"
+                      alt="" className="w-full h-full object-cover object-center"/>
+                    <div className="absolute inset-0" style={{ background:`linear-gradient(160deg,rgba(255,252,247,.88) 0%,rgba(255,252,247,.78) 100%)` }}/>
+                  </div>
+
+                  {/* Desktop rose gradient */}
+                  <div className="hidden lg:block absolute inset-0 pointer-events-none"
+                    style={{ background:`radial-gradient(ellipse 160% 90% at 50% -15%,${G.rose}55 0%,transparent 55%)` }}/>
 
                   {/* Background ornament ring */}
-                  <div className="absolute pointer-events-none float-slow" style={{ opacity:.08 }}>
+                  <div className="absolute pointer-events-none float-slow" style={{ opacity:.07 }}>
                     <OrnamentRing size={320}/>
                   </div>
 
@@ -864,9 +908,14 @@ function Index() {
 
                   <div className="text-center max-w-xl mx-auto relative">
                     <Reveal>
-                      <p className="fd font-light mb-3" style={{ fontSize:"clamp(24px,5.5vw,36px)",color:G.deep }}>
-                        بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
-                      </p>
+                      <div className="inline-block relative px-8 py-5 mb-2"
+                        style={{ border:`1px solid ${G.gold}22`, background:`linear-gradient(135deg,${G.cream},${G.ivory})` }}>
+                        <div className="absolute inset-x-0 top-0 h-[1.5px]" style={{ background:`linear-gradient(to right,transparent,${G.gold}55,transparent)` }}/>
+                        <div className="absolute inset-x-0 bottom-0 h-[1.5px]" style={{ background:`linear-gradient(to right,transparent,${G.gold}55,transparent)` }}/>
+                        <p className="fd font-light" style={{ fontSize:"clamp(26px,5.5vw,40px)",color:G.deep,letterSpacing:".04em" }}>
+                          بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+                        </p>
+                      </div>
                     </Reveal>
                     <Reveal delay={.08}>
                       <div className="flex justify-center my-7">
@@ -874,17 +923,22 @@ function Index() {
                       </div>
                     </Reveal>
                     <Reveal delay={.12}>
-                      <blockquote className="fd italic leading-[2.15] mb-3 px-4"
-                        style={{ fontSize:"clamp(13px,2.1vw,16px)",color:G.muted }}>
-                        "Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan-pasangan
-                        dari jenismu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya."
-                      </blockquote>
+                      <div className="relative px-6 sm:px-10 py-6 mb-3 mx-auto max-w-md"
+                        style={{ background:`linear-gradient(135deg,${G.cream}88,${G.ivory})`, border:`1px solid ${G.gold}20` }}>
+                        <div className="absolute top-2 left-3 fd italic text-4xl leading-none opacity-15" style={{ color:G.gold }}>"</div>
+                        <div className="absolute bottom-2 right-3 fd italic text-4xl leading-none opacity-15" style={{ color:G.gold }}>"</div>
+                        <blockquote className="fd italic leading-[2.1]"
+                          style={{ fontSize:"clamp(13px,2.1vw,15px)",color:G.muted }}>
+                          Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan-pasangan
+                          dari jenismu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya.
+                        </blockquote>
+                      </div>
                     </Reveal>
                     <Reveal delay={.18}>
                       <p className="fb text-[9px] font-semibold mb-10" style={{ color:G.gold,letterSpacing:".36em" }}>— QS. AR-RUM : 21 —</p>
                     </Reveal>
                     <Reveal delay={.22}>
-                      <p className="fb text-xs sm:text-sm leading-[2] mb-14 px-1" style={{ color:G.muted }}>
+                      <p className="fd italic text-sm sm:text-base leading-[2.1] mb-14 px-1" style={{ color:G.muted }}>
                         Dengan memohon rahmat dan ridho Allah Subhanahu Wa Ta'ala, kami bermaksud menyelenggarakan
                         walimatul 'ursy putra-putri kami:
                       </p>
@@ -1102,61 +1156,83 @@ function Index() {
                       </div>
                     </Reveal>
 
-                    {/* Event cards — full redesign with image backgrounds */}
-                    <div className="space-y-5 mb-14">
+                    {/* Event cards — with timeline connector */}
+                    <div className="relative mb-14">
+                      {/* Vertical timeline line */}
+                      <div className="absolute left-[22px] sm:left-1/2 sm:-translate-x-1/2 top-0 bottom-0 w-px"
+                        style={{ background:`linear-gradient(to bottom,transparent,${G.gold}55 20%,${G.gold}55 80%,transparent)` }}/>
+                      <div className="flex flex-col gap-6">
                       {[
                         {
-                          title:"Akad Nikah", sub:"Ijab Kabul",
+                          title:"Akad Nikah", sub:"Ijab Kabul", num:"01",
                           img:"https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&h=500&q=85&fit=crop",
-                          data:W.akad, icon:"🕌",
+                          data:W.akad,
                         },
                         {
-                          title:"Resepsi Pernikahan", sub:"Walimatul 'Ursy",
+                          title:"Resepsi Pernikahan", sub:"Walimatul 'Ursy", num:"02",
                           img:"https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&h=500&q=85&fit=crop",
-                          data:W.resepsi, icon:"🌸",
+                          data:W.resepsi,
                         },
                       ].map((ev,i)=>(
                         <Reveal key={ev.title} delay={i*.14}>
-                          <div className="hover-lift relative overflow-hidden"
-                            style={{ border:`1px solid ${G.gold}28`, boxShadow:`0 12px 48px rgba(192,144,80,.1)` }}>
-                            {/* Top image strip */}
-                            <div className="relative h-36 overflow-hidden">
-                              <img src={ev.img} alt={ev.title} className="w-full h-full object-cover transition-transform duration-700 hover:scale-[1.04]"/>
-                              <div className="absolute inset-0"
-                                style={{ background:"linear-gradient(to bottom,rgba(26,21,17,.3) 0%,rgba(26,21,17,.75) 100%)" }}/>
-                              <div className="absolute inset-x-0 bottom-0 h-[1.5px]"
-                                style={{ background:`linear-gradient(to right,transparent,${G.gold}66,transparent)` }}/>
-                              {/* Overlay title */}
-                              <div className="absolute inset-0 flex flex-col justify-end px-5 pb-4">
-                                <p className="fb text-[8px] font-semibold mb-1" style={{ color:G.goldL,letterSpacing:".28em" }}>{ev.sub.toUpperCase()}</p>
-                                <h3 className="fd font-normal" style={{ fontSize:"clamp(20px,4vw,26px)",color:G.ivory,lineHeight:1.2 }}>{ev.title}</h3>
+                          <div className="flex items-start gap-4 sm:gap-0 sm:block">
+                            {/* Timeline dot (mobile) */}
+                            <div className="flex-shrink-0 sm:hidden mt-6 z-10 relative">
+                              <div className="w-11 h-11 rounded-full flex items-center justify-center"
+                                style={{ background:`linear-gradient(135deg,${G.goldD},${G.gold})`, boxShadow:`0 4px 16px ${G.gold}44` }}>
+                                <span className="fb text-[10px] font-semibold" style={{ color:G.ivory }}>{ev.num}</span>
                               </div>
-                              {/* Corner ornaments */}
-                              <div className="absolute top-2 right-2 opacity-60"><Corner pos="tr"/></div>
                             </div>
-
-                            {/* Content */}
-                            <div className="px-5 py-5" style={{ background:G.ivory }}>
-                              <div className="flex flex-col sm:flex-row sm:items-start gap-4 justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <div className="w-[2px] h-4 rounded-full" style={{ background:G.gold }}/>
-                                    <p className="fb text-xs font-semibold" style={{ color:G.deep }}>{ev.data.time}</p>
-                                  </div>
-                                  <p className="fd italic text-base mb-0.5" style={{ color:G.deep }}>{ev.data.place}</p>
-                                  <p className="fb text-xs" style={{ color:G.muted }}>{ev.data.addr}</p>
+                            <div className="hover-lift flex-1 relative overflow-hidden"
+                              style={{ border:`1px solid ${G.gold}30`, boxShadow:`0 16px 56px rgba(192,144,80,.12)` }}>
+                              {/* Number badge (desktop) */}
+                              <div className="hidden sm:flex absolute top-4 left-4 z-10 w-10 h-10 rounded-full items-center justify-center"
+                                style={{ background:`linear-gradient(135deg,${G.goldD},${G.gold})`, boxShadow:`0 4px 16px ${G.gold}44` }}>
+                                <span className="fb text-[10px] font-semibold" style={{ color:G.ivory }}>{ev.num}</span>
+                              </div>
+                              {/* Image header */}
+                              <div className="relative h-44 overflow-hidden group">
+                                <img src={ev.img} alt={ev.title}
+                                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"/>
+                                <div className="absolute inset-0"
+                                  style={{ background:"linear-gradient(to bottom,rgba(26,21,17,.15) 0%,rgba(26,21,17,.82) 100%)" }}/>
+                                <div className="absolute inset-x-0 bottom-0 h-[2px]"
+                                  style={{ background:`linear-gradient(to right,transparent,${G.gold}88,transparent)` }}/>
+                                <div className="absolute inset-0 flex flex-col justify-end px-6 pb-5">
+                                  <p className="fb text-[8px] font-semibold mb-1.5" style={{ color:G.goldL,letterSpacing:".3em" }}>{ev.sub.toUpperCase()}</p>
+                                  <h3 className="fd font-normal" style={{ fontSize:"clamp(22px,4vw,30px)",color:G.ivory,lineHeight:1.2 }}>{ev.title}</h3>
                                 </div>
-                                <Magnetic href={ev.data.maps}
-                                  className="fb inline-flex items-center gap-2 text-[9px] font-semibold px-5 py-2.5 shrink-0"
-                                  style={{ background:`linear-gradient(135deg,${G.goldD},${G.gold})`,color:G.ivory,letterSpacing:".1em", boxShadow:`0 6px 20px ${G.gold}30` }}>
-                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                                  LIHAT LOKASI
-                                </Magnetic>
+                                <div className="absolute top-2 right-2 opacity-50"><Corner pos="tr"/></div>
+                              </div>
+                              {/* Content */}
+                              <div className="px-6 py-5" style={{ background:G.ivory }}>
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+                                  <div className="flex-1 space-y-1.5">
+                                    <div className="flex items-center gap-2">
+                                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={G.gold} strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                      <p className="fb text-xs font-semibold" style={{ color:G.deep }}>{ev.data.time}</p>
+                                    </div>
+                                    <div className="flex items-start gap-2">
+                                      <svg width="11" height="11" viewBox="0 0 24 24" fill={G.gold} className="mt-0.5 shrink-0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                                      <div>
+                                        <p className="fd italic text-base leading-tight" style={{ color:G.deep }}>{ev.data.place}</p>
+                                        <p className="fb text-[11px] mt-0.5" style={{ color:G.muted }}>{ev.data.addr}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <Magnetic href={ev.data.maps}
+                                    className="fb inline-flex items-center gap-2 text-[9px] font-semibold px-5 py-3 shrink-0"
+                                    style={{ background:`linear-gradient(135deg,${G.goldD},${G.gold})`,color:G.ivory,letterSpacing:".1em", boxShadow:`0 6px 20px ${G.gold}35` }}>
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                                    LIHAT PETA
+                                  </Magnetic>
+                                </div>
                               </div>
                             </div>
                           </div>
                         </Reveal>
                       ))}
+                      </div>
                     </div>
 
                     {/* Dress code */}
@@ -1422,20 +1498,27 @@ function Index() {
 
                 {/* ══ PENUTUP ══ */}
                 <section className="relative px-5 sm:px-14 py-24 sm:py-36 overflow-hidden">
-                  <div className="absolute inset-0 pointer-events-none"
-                    style={{ background:`radial-gradient(ellipse 140% 60% at 50% -5%,${G.rose}52,transparent 52%),${G.ivory}` }}/>
-                  {/* Large background ornament */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none float-slow" style={{ opacity:.07 }}>
-                    <OrnamentRing size={420}/>
+                  {/* Full-bleed photo background */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    <img src="https://images.unsplash.com/photo-1511285560929-80b456503681?w=1400&q=80&fit=crop"
+                      alt="" className="w-full h-full object-cover object-center"/>
+                    <div className="absolute inset-0"
+                      style={{ background:`linear-gradient(to bottom,rgba(255,252,247,.94) 0%,rgba(255,252,247,.88) 50%,rgba(255,252,247,.94) 100%)` }}/>
+                    <div className="absolute inset-0"
+                      style={{ background:`radial-gradient(ellipse 120% 50% at 50% 50%,${G.rose}30,transparent 65%)` }}/>
                   </div>
-                  <div className="absolute bottom-5 left-5 opacity-12 hidden sm:block"><Corner pos="bl"/></div>
-                  <div className="absolute bottom-5 right-5 opacity-12 hidden sm:block"><Corner pos="br"/></div>
-                  <div className="absolute top-5 left-5 opacity-8 hidden sm:block"><Corner pos="tl"/></div>
-                  <div className="absolute top-5 right-5 opacity-8 hidden sm:block"><Corner pos="tr"/></div>
+                  {/* Large background ornament */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none float-slow" style={{ opacity:.1 }}>
+                    <OrnamentRing size={440}/>
+                  </div>
+                  <div className="absolute bottom-5 left-5 opacity-20 hidden sm:block"><Corner pos="bl"/></div>
+                  <div className="absolute bottom-5 right-5 opacity-20 hidden sm:block"><Corner pos="br"/></div>
+                  <div className="absolute top-5 left-5 opacity-15 hidden sm:block"><Corner pos="tl"/></div>
+                  <div className="absolute top-5 right-5 opacity-15 hidden sm:block"><Corner pos="tr"/></div>
 
                   <div className="relative text-center max-w-lg mx-auto">
                     <Reveal>
-                      <p className="fb text-[9px] font-semibold mb-8" style={{ color:G.gold,letterSpacing:".55em" }}>TERIMA KASIH</p>
+                      <p className="fb text-[9px] font-semibold mb-8" style={{ color:G.gold,letterSpacing:".55em" }}>✦ &ensp; TERIMA KASIH &ensp; ✦</p>
                     </Reveal>
 
                     <div className="overflow-hidden mb-2">
