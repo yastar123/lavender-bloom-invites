@@ -167,7 +167,7 @@ function FallingPetals() {
     resize();
     window.addEventListener('resize',resize);
     type P={x:number;y:number;sz:number;vy:number;vx:number;rot:number;rv:number;op:number;sway:number;swayS:number};
-    const ps:P[]=Array.from({length:22},()=>({
+    const ps:P[]=Array.from({length:55},()=>({
       x:Math.random()*window.innerWidth,
       y:Math.random()*window.innerHeight*-1.4,
       sz:Math.random()*8+4, vy:Math.random()*.55+.22, vx:Math.random()*.18-.09,
