@@ -126,6 +126,72 @@ function FlDiv({ light=false }:{ light?:boolean }) {
   );
 }
 
+/* ─── FLOATING PARTICLES ─── */
+function FloatingParticles() {
+  const el=useRef<HTMLDivElement>(null);
+  const pts=useMemo(()=>Array.from({length:22},(_,i)=>({
+    id:i, size:1.5+(i%4)*.8,
+    left:`${(i*4.7+3)%93}%`, top:`${(i*6.9+8)%82}%`,
+    dur:4+(i%6)*.9, delay:(i%8)*.55,
+    dx:-28+(i%5)*14, dy:-120-(i%5)*38,
+  })),[]);
+  useGSAP(()=>{
+    const nodes=el.current?.querySelectorAll(".fp")??[];
+    nodes.forEach((n,i)=>{
+      const p=pts[i];
+      gsap.fromTo(n,
+        {y:0,x:0,opacity:.1+(i%4)*.05,scale:1},
+        {y:p.dy,x:p.dx,opacity:0,scale:.4,duration:p.dur,delay:p.delay,
+         repeat:-1,repeatDelay:p.delay*.6,ease:"power1.out"}
+      );
+    });
+  },{scope:el});
+  return (
+    <div ref={el} className="fixed inset-0 pointer-events-none z-[2]" aria-hidden="true">
+      {pts.map(p=>(
+        <div key={p.id} className="fp absolute rounded-full"
+          style={{width:p.size,height:p.size,background:G.gold,left:p.left,top:p.top,opacity:.15}}/>
+      ))}
+    </div>
+  );
+}
+
+/* ─── SECTION TITLE (word-by-word stagger) ─── */
+function SectionTitle({children,className="",style={}}:{children:string;className?:string;style?:React.CSSProperties}) {
+  const words=children.split(" ");
+  return (
+    <h2 className={`fd font-light ${className}`} style={style}>
+      {words.map((w,i)=>(
+        <span key={i} style={{display:"inline-block",overflow:"hidden",marginRight:"0.3em",verticalAlign:"bottom"}}>
+          <motion.span initial={{y:"115%"}} whileInView={{y:0}} viewport={{once:true,amount:.25}}
+            transition={{duration:1.05,delay:i*.1,ease:[0.22,1,0.36,1]}}
+            style={{display:"inline-block"}}>
+            {w}
+          </motion.span>
+        </span>
+      ))}
+    </h2>
+  );
+}
+
+/* ─── TILT CARD (3-D hover tilt via GSAP) ─── */
+function TiltCard({children,className="",style={}}:{children:React.ReactNode;className?:string;style?:React.CSSProperties}) {
+  const ref=useRef<HTMLDivElement>(null);
+  const mv=(e:React.MouseEvent)=>{
+    if(!ref.current)return;
+    const r=ref.current.getBoundingClientRect();
+    const rx=((e.clientY-r.top)/r.height-.5)*14;
+    const ry=-((e.clientX-r.left)/r.width-.5)*14;
+    gsap.to(ref.current,{rotateX:rx,rotateY:ry,duration:.4,ease:"power2.out",transformPerspective:900});
+  };
+  const ml=()=>{if(ref.current)gsap.to(ref.current,{rotateX:0,rotateY:0,duration:.65,ease:"power2.out"});};
+  return (
+    <div ref={ref} className={className} style={{...style,transformStyle:"preserve-3d"}} onMouseMove={mv} onMouseLeave={ml}>
+      {children}
+    </div>
+  );
+}
+
 /* ─── REVEAL ─── */
 function Reveal({ children, delay=0, y=30, className="", style={} }:{
   children:React.ReactNode; delay?:number; y?:number; className?:string; style?:React.CSSProperties;
@@ -362,6 +428,10 @@ function Index() {
   const storyWrapRef=useRef<HTMLDivElement>(null);
   const storyTrackRef=useRef<HTMLDivElement>(null);
   const coverPhotoRef=useRef<HTMLDivElement>(null);
+  const closingRef=useRef<HTMLElement>(null);
+  const closingImgRef=useRef<HTMLImageElement>(null);
+  const heroSectionRef=useRef<HTMLDivElement>(null);
+  const heroImgRef=useRef<HTMLImageElement>(null);
   const { mx:pmx, my:pmy }=useMouseParallax();
 
   /* Parallax transforms for cover layers */
@@ -402,6 +472,24 @@ function Index() {
       scrollTrigger:{ trigger:storyWrapRef.current, start:"top top", end:`+=${totalX}`, scrub:1.2, pin:true, anticipatePin:1 },
     });
   },{ dependencies:[opened], scope:storyWrapRef });
+
+  /* Closing section parallax */
+  useGSAP(()=>{
+    if(!opened||!closingRef.current||!closingImgRef.current)return;
+    gsap.fromTo(closingImgRef.current,
+      {yPercent:-12},
+      {yPercent:12,ease:"none",scrollTrigger:{trigger:closingRef.current,start:"top bottom",end:"bottom top",scrub:1.5}}
+    );
+  },{dependencies:[opened]});
+
+  /* Hero scroll parallax */
+  useGSAP(()=>{
+    if(!opened||!heroSectionRef.current||!heroImgRef.current)return;
+    gsap.to(heroImgRef.current,{
+      yPercent:22,ease:"none",
+      scrollTrigger:{trigger:heroSectionRef.current,start:"top top",end:"bottom top",scrub:1.2}
+    });
+  },{dependencies:[opened]});
 
   /* Nav intersection */
   useEffect(()=>{
@@ -715,6 +803,7 @@ function Index() {
           {opened && (
             <div className="w-full min-h-screen" style={{background:G.ivory}}>
               <ScrollBar/>
+              <FloatingParticles/>
 
               {/* ── NAV ── */}
               <motion.nav initial={{y:-56,opacity:0}} animate={{y:0,opacity:1}} transition={{delay:.25,ease:[0.22,1,0.36,1]}}
@@ -745,7 +834,7 @@ function Index() {
               {/* ══ PEMBUKAAN ══ */}
               <section id="pembukaan" style={{paddingTop:58}}>
                 {/* Hero banner */}
-                <div className="relative overflow-hidden" style={{height:"68vh",minHeight:360}}>
+                <div ref={heroSectionRef} className="relative overflow-hidden" style={{height:"68vh",minHeight:360}}>
                   {/* Background image — uses animate (not whileInView) because it's always above the fold */}
                   <div className="absolute inset-0 overflow-hidden">
                     <motion.div
@@ -755,6 +844,7 @@ function Index() {
                       className="w-full h-full"
                     >
                       <motion.img
+                        ref={heroImgRef}
                         src="https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=1800&q=90&fit=crop"
                         alt=""
                         className="w-full h-full object-cover"
@@ -952,11 +1042,10 @@ function Index() {
                   <Reveal>
                     <p className="fb text-center text-[8px] font-semibold mb-2" style={{color:G.gold,letterSpacing:".58em"}}>SAVE THE DATE</p>
                   </Reveal>
-                  <div style={{overflow:"hidden",textAlign:"center"}}>
-                    <motion.h2 initial={{y:"110%"}} whileInView={{y:0}} viewport={{once:true}} transition={{duration:1.1,ease:[0.22,1,0.36,1]}}
-                      className="fd font-light" style={{fontSize:"clamp(38px,7vw,64px)",color:G.deep,lineHeight:1.1}}>
+                  <div style={{textAlign:"center"}}>
+                    <SectionTitle style={{fontSize:"clamp(38px,7vw,64px)",color:G.deep,lineHeight:1.1}}>
                       Detail Acara
-                    </motion.h2>
+                    </SectionTitle>
                   </div>
                   <Reveal delay={.18} className="flex justify-center mt-8 mb-16"><FlDiv/></Reveal>
 
@@ -1002,6 +1091,7 @@ function Index() {
                       {title:"Resepsi Pernikahan",sub:"Walimatul 'Ursy",num:"02",data:W.resepsi,img:"https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=1000&h=500&q=90&fit=crop"},
                     ].map((ev,i)=>(
                       <Reveal key={ev.title} delay={i*.18}>
+                        <TiltCard>
                         <div className="hl relative overflow-hidden" style={{border:`1px solid ${G.gold}35`,boxShadow:`0 20px 60px rgba(192,144,80,.1)`}}>
                           {/* Number badge */}
                           <div style={{position:"absolute",top:16,left:16,zIndex:10,width:44,height:44,borderRadius:"50%",background:`linear-gradient(135deg,${G.goldD},${G.gold})`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 6px 24px ${G.gold}52`}}>
@@ -1043,6 +1133,7 @@ function Index() {
                             </Mag>
                           </div>
                         </div>
+                        </TiltCard>
                       </Reveal>
                     ))}
                   </div>
@@ -1088,11 +1179,10 @@ function Index() {
                 <div className="px-5 sm:px-10 pt-24 sm:pt-32 pb-14">
                   <div className="text-center mb-14 max-w-2xl mx-auto">
                     <Reveal><p className="fb text-[8px] font-semibold mb-2" style={{color:G.goldL,letterSpacing:".58em"}}>OUR GALLERY</p></Reveal>
-                    <div style={{overflow:"hidden",textAlign:"center"}}>
-                      <motion.h2 initial={{y:"110%"}} whileInView={{y:0}} viewport={{once:true}} transition={{duration:1.1,ease:[0.22,1,0.36,1]}}
-                        className="fd font-light" style={{fontSize:"clamp(38px,7vw,64px)",color:G.ivory,lineHeight:1.1}}>
+                    <div style={{textAlign:"center"}}>
+                      <SectionTitle style={{fontSize:"clamp(38px,7vw,64px)",color:G.ivory,lineHeight:1.1}}>
                         Momen Kami
-                      </motion.h2>
+                      </SectionTitle>
                     </div>
                     <Reveal delay={.2} className="flex justify-center mt-8 mb-3"><FlDiv light/></Reveal>
                     <Reveal delay={.3}><p className="fd italic text-sm" style={{color:`${G.ivory}38`}}>Geser untuk melihat semua foto</p></Reveal>
@@ -1135,11 +1225,10 @@ function Index() {
                 <div className="sec-num" style={{fontSize:"clamp(180px,26vw,360px)",color:G.deep,right:-10,bottom:-40}}>04</div>
                 <div className="max-w-lg mx-auto relative">
                   <Reveal><p className="fb text-center text-[8px] font-semibold mb-2" style={{color:G.gold,letterSpacing:".58em"}}>AMPLOP DIGITAL</p></Reveal>
-                  <div style={{overflow:"hidden",textAlign:"center"}}>
-                    <motion.h2 initial={{y:"110%"}} whileInView={{y:0}} viewport={{once:true}} transition={{duration:1.1,ease:[0.22,1,0.36,1]}}
-                      className="fd font-light" style={{fontSize:"clamp(36px,6.5vw,58px)",color:G.deep,lineHeight:1.1}}>
+                  <div style={{textAlign:"center"}}>
+                    <SectionTitle style={{fontSize:"clamp(36px,6.5vw,58px)",color:G.deep,lineHeight:1.1}}>
                       Hadiah &amp; Doa
-                    </motion.h2>
+                    </SectionTitle>
                   </div>
                   <Reveal delay={.2} className="flex justify-center mt-8 mb-6"><FlDiv/></Reveal>
                   <Reveal delay={.28} className="text-center mb-14">
@@ -1192,11 +1281,10 @@ function Index() {
                 <div className="absolute inset-0 pointer-events-none" style={{background:`radial-gradient(ellipse 85% 60% at 50% -5%,${G.gold}10,transparent 50%)`}}/>
                 <div className="px-5 sm:px-10 max-w-lg mx-auto relative">
                   <Reveal><p className="fb text-center text-[8px] font-semibold mb-2" style={{color:G.goldL,letterSpacing:".58em"}}>RSVP</p></Reveal>
-                  <div style={{overflow:"hidden",textAlign:"center"}}>
-                    <motion.h2 initial={{y:"110%"}} whileInView={{y:0}} viewport={{once:true}} transition={{duration:1.1,ease:[0.22,1,0.36,1]}}
-                      className="fd font-light" style={{fontSize:"clamp(38px,7vw,64px)",color:G.ivory,lineHeight:1.1}}>
+                  <div style={{textAlign:"center"}}>
+                    <SectionTitle style={{fontSize:"clamp(38px,7vw,64px)",color:G.ivory,lineHeight:1.1}}>
                       Ucapan &amp; Doa
-                    </motion.h2>
+                    </SectionTitle>
                   </div>
                   <Reveal delay={.2} className="flex justify-center mt-8 mb-3"><FlDiv light/></Reveal>
                   <Reveal delay={.3} className="text-center mb-12">
@@ -1300,9 +1388,9 @@ function Index() {
               </section>
 
               {/* ══ PENUTUP ══ */}
-              <section className="relative overflow-hidden px-5 sm:px-10 py-40 sm:py-52 text-center">
-                <div className="absolute inset-0">
-                  <img src="https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=1800&q=85&fit=crop" alt="" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center"}}/>
+              <section ref={closingRef as React.RefObject<HTMLElement>} className="relative overflow-hidden px-5 sm:px-10 py-40 sm:py-52 text-center">
+                <div className="absolute inset-0 overflow-hidden">
+                  <img ref={closingImgRef} src="https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=1800&q=85&fit=crop" alt="" style={{width:"100%",height:"115%",objectFit:"cover",objectPosition:"center",willChange:"transform"}}/>
                   <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(255,252,247,.97) 0%,rgba(255,252,247,.88) 48%,rgba(255,252,247,.95) 100%)"}}/>
                   <div style={{position:"absolute",inset:0,background:`radial-gradient(ellipse 140% 60% at 50% 50%,${G.rose}38,transparent 60%)`}}/>
                 </div>
