@@ -271,13 +271,13 @@ function Loader({ onDone }:{ onDone:()=>void }) {
           <span className="fd italic text-sm" style={{ color:`${G.ivory}45` }}>{W.dateText}</span>
         </motion.div>
         <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-8 pb-6">
-          <motion.div initial={{scaleX:0}} animate={{scaleX:1}} transition={{delay:1,duration:1.4,ease:"power2.inOut"}}
+          <motion.div initial={{scaleX:0}} animate={{scaleX:1}} transition={{delay:1,duration:1.4,ease:[0.42,0,0.58,1]}}
             className="flex-1 mr-6 h-px origin-left" style={{ background:`linear-gradient(to right,${G.gold}00,${G.gold}55)` }}/>
           <motion.span initial={{opacity:0}} animate={{opacity:1}} transition={{delay:1.1,duration:.8}}
             className="fd text-6xl sm:text-7xl font-light shrink-0" style={{ color:`${G.ivory}18`, lineHeight:1 }}>
             {String(count).padStart(3,"0")}
           </motion.span>
-          <motion.div initial={{scaleX:0}} animate={{scaleX:1}} transition={{delay:1,duration:1.4,ease:"power2.inOut"}}
+          <motion.div initial={{scaleX:0}} animate={{scaleX:1}} transition={{delay:1,duration:1.4,ease:[0.42,0,0.58,1]}}
             className="flex-1 ml-6 h-px origin-right" style={{ background:`linear-gradient(to left,${G.gold}00,${G.gold}55)` }}/>
         </div>
       </div>
